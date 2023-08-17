@@ -147,7 +147,7 @@
 
             double[][] dz3 = this.DerivativeSoftmax(this.A3!, y);
 
-            double [][] dw2 = MatrixOperation.DotConstant(MatrixOperation.DotProduct(MatrixOperation.Transpose(this.A2!), dz3), 1.0/x.Length);
+            double [][] dw2 = MatrixOperation.DotProduct(MatrixOperation.Transpose(this.A2!), dz3);
 
             double[] db2 = MatrixOperation.SumColumn(dz3);
 
@@ -156,7 +156,7 @@
 
             double [][] dz2 =  MatrixOperation.DotElementWise(dA2, this.DerivativeLeakyRELU(this.Z2!, ChessConstant.ALPHA));
 
-            double[][] dw1 = MatrixOperation.DotConstant(MatrixOperation.DotProduct(MatrixOperation.Transpose(x!), dz2), 1.0/x.Length);
+            double[][] dw1 = MatrixOperation.DotProduct(MatrixOperation.Transpose(x!), dz2);
 
             double[] db1 = MatrixOperation.SumColumn(dz2);
 
