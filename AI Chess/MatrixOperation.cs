@@ -97,10 +97,14 @@ namespace AI_Chess
             int h = matrix[0].Length;
 
             double[][] result = new double[h][];
+            //Initialiser au début
+            for (int i = 0; i < h; i++)
+            {
+                result[i] = new double[w];
+            }
 
             for (int i = 0; i < w; i++)
             {
-                result[i] = new double[w];
                 for (int j = 0; j < h; j++)
                 {
                     result[j][i] = matrix[i][j];
@@ -126,6 +130,25 @@ namespace AI_Chess
                 }
             }
             return sumByColumn;
+        }
+
+        public static double[][] GenerateRandomNormal(Random random, double mean, double stdDev, int x, int y)
+        {
+            var result = new double[x][];
+            for(int i = 0; i < x; i++){
+                result[i] = new double[y];
+                for(int j = 0; j < y; j++){
+                    result[i][j] = MatrixOperation.GenerateRandomNormal(random, mean, stdDev);
+                }
+            }
+            return result;
+        }
+        public static double GenerateRandomNormal(Random random, double mean, double stdDev)
+        {
+            double u1 = 1.0 - random.NextDouble(); // Uniforme [0,1)
+            double u2 = 1.0 - random.NextDouble();
+            double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); // Transformation de Box-Muller
+            return mean + stdDev * randStdNormal;
         }
     }
 }
