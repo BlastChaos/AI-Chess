@@ -43,8 +43,9 @@
                 
                 double[][]? new_z = z.Clone() as double[][];
                 var valeurDiminuer = 0.0;
-                if(new_z![i].Max() > ChessConstant.EXP_MAX_VALUE ){
-                    valeurDiminuer = new_z[i].Max();
+                var somme = new_z![i].Sum(s => s >=0 ? s : 0.0);
+                if(somme > ChessConstant.EXP_MAX_VALUE){
+                    valeurDiminuer = new_z[i].Max()- (new_z[i].Max() - ChessConstant.EXP_MAX_VALUE)/new_z![i].Length;
                 } 
                 
 /*                  if(new_z![i].Min() <=  ChessConstant.MIN_VALUE_EXP){
@@ -62,6 +63,10 @@
                 }
 
                 double denominator = numerator[i].Sum();
+                if(double.IsNaN( denominator) || double.IsInfinity(denominator))
+                {
+                    throw new Exception("Denominator give Infinity or Nan");
+                }
                 softmax[i] = new double[y]; 
                 for (int j = 0; j < y; j++)
                 {
