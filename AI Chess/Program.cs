@@ -27,9 +27,9 @@ for (int m = 0; m < numbers.Length ; m++)
     }
 }
 
-var nn = new NeuralNetwork(10,60,10,0.0001);
+var nn = new NeuralNetwork(10,100,10,0.0001);
 var debut = DateTime.Now;
-var loss = nn.Train(numbers,y,100);
+var loss = nn.Train(numbers,y,4);
 var fin = DateTime.Now;
 Console.WriteLine("Dernier Loss generer: " + loss.Last());
 Console.WriteLine("Temps pour le générer: " + (fin-debut));

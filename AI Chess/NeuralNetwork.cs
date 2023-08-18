@@ -41,11 +41,12 @@
                 //Get all numerotor before divising by the denominator
                 numerator[i] = new double[y];
                 
-                double[][]? new_z = z.Clone() as double[][];
                 var valeurDiminuer = 0.0;
-                var somme = new_z![i].Sum(s => s >=0 ? s : 0.0);
+                var somme = z![i].Sum(s => s >=0 ? s : 0.0);
+                var t = z![i].Sum(s => s >=0 ? 1 : 0.0);
+                var secondBest = z![i].OrderDescending().Skip(1).First();
                 if(somme > ChessConstant.EXP_MAX_VALUE){
-                    valeurDiminuer = new_z[i].Max()- (new_z[i].Max() - ChessConstant.EXP_MAX_VALUE)/new_z![i].Length;
+                    valeurDiminuer = (somme - ChessConstant.EXP_MAX_VALUE)/t + secondBest/t;
                 } 
                 
 /*                  if(new_z![i].Min() <=  ChessConstant.MIN_VALUE_EXP){
@@ -103,6 +104,19 @@
             return result;
         }
 
+        public double[][] RELU(double[][] z){
+            double[][] result = new double[z.Length][];
+            for (int i = 0; i < z.Length; i++)
+            {
+                result[i] = new double[z[0].Length];
+                for (int j = 0; j < z[0].Length; j++)
+                {
+                    result[i][j] = Math.Max(0, z[i][j]);
+                }
+            }
+            return result;
+        }
+
         public  double[][] DerivativeLeakyRELU(double[][] z, double alpha){
             double[][] result = new double[z.Length][];
             for (int i = 0; i < z.Length; i++)
@@ -111,6 +125,18 @@
                 for (int j = 0; j < z[0].Length; j++)
                 {
                     result[i][j] = z[i][j] <= 0 ? alpha : 1;    
+                }
+            }
+            return result;
+        }
+        public  double[][] DerivativeRELU(double[][] z){
+            double[][] result = new double[z.Length][];
+            for (int i = 0; i < z.Length; i++)
+            {
+                result[i] = new double[z[0].Length];
+                for (int j = 0; j < z[0].Length; j++)
+                {
+                    result[i][j] = z[i][j] <= 0 ? 0 : 1;    
                 }
             }
             return result;
@@ -134,7 +160,7 @@
             double[][] dotProduct = MatrixOperation.DotProduct(this.A1, this.W1);
             this.Z2 =  MatrixOperation.Add(dotProduct, this.B1);
 
-            this.A2 = this.LeakyRELU(this.Z2, ChessConstant.ALPHA);
+            this.A2 = this.RELU(this.Z2);
 
             dotProduct = MatrixOperation.DotProduct(this.A2, this.W2);
             this.Z3 =  MatrixOperation.Add(dotProduct, this.B2); 
@@ -154,7 +180,7 @@
 
             double[][] dA2 = MatrixOperation.DotProduct(dz3, MatrixOperation.Transpose(this.W2!));
 
-            double [][] dz2 =  MatrixOperation.DotElementWise(dA2, this.DerivativeLeakyRELU(this.Z2!, ChessConstant.ALPHA));
+            double [][] dz2 =  MatrixOperation.DotElementWise(dA2, this.DerivativeRELU(this.Z2!));
 
             double[][] dw1 = MatrixOperation.DotProduct(MatrixOperation.Transpose(x!), dz2);
 
