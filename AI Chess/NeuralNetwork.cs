@@ -120,7 +120,7 @@
                 for (int j = 0; j < y[0].Length; j++)
                 {
                     //Prevent taking the log of 0 with double.Epsilon
-                    result += y[i][j] * Math.Log(y_pred[i][j] + double.Epsilon);
+                    result += -y[i][j] * Math.Log(y_pred[i][j] + double.Epsilon);
                 }
             }
             return result;
