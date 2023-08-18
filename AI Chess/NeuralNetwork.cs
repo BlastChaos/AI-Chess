@@ -35,19 +35,21 @@
             int x = z.Length;
             int y = z[0].Length;
             double[][] numerator = new double[x][];
-
+            double[][] softmax = new double[x][];
             for (int i = 0; i < x; i++)
             {
+                //Get all numerotor before divising by the denominator
                 numerator[i] = new double[y];
+                
                 double[][]? new_z = z.Clone() as double[][];
                 var valeurDiminuer = 0.0;
                 if(new_z![i].Max() > ChessConstant.EXP_MAX_VALUE ){
                     valeurDiminuer = new_z[i].Max();
                 } 
                 
-                if(new_z![i].Min() <=  ChessConstant.MIN_VALUE_EXP){
-                    valeurDiminuer -= new_z![i].Min() + ChessConstant.MIN_VALUE_EXP;
-                } 
+/*                  if(new_z![i].Min() <=  ChessConstant.MIN_VALUE_EXP){
+                    valeurDiminuer += ChessConstant.MIN_VALUE_EXP;
+                }   */
                 
                 for (int j = 0; j < y; j++)
                 {
@@ -55,32 +57,29 @@
                     numerator[i][j]=Math.Exp(z[i][j] - valeurDiminuer) + double.Epsilon;  
                     if(double.IsNaN( numerator[i][j]) || double.IsInfinity(numerator[i][j]))
                     {
-                        throw new Exception("Math.Exp donne un Nan, un Infini ou 0. Valeur:" + numerator[i][j]);
+                        throw new Exception("Math.Exp Give Nan or Infinity. Value:" + numerator[i][j]);
                     }
                 }
-            }
-            double[][] softmax = new double[x][];
-            for (int i=0;i<x;i++)
-            {
-                var denominator = numerator[i].Sum();
+
+                double denominator = numerator[i].Sum();
                 softmax[i] = new double[y]; 
                 for (int j = 0; j < y; j++)
                 {
-                    softmax[i][j]= numerator[i][j] / denominator;
+                    softmax[i][j] = numerator[i][j] / denominator;
                 }
-            } 
+            }
             return softmax;
         }
 
-        public  double[][] DerivativeSoftmax(double[][] z, double[][] y){
-            double[][] softmax = this.Softmax(z);
-            double[][] result = new double[z.Length][];
-            for (int i = 0; i < z.Length; i++)
+        public  double[][] DerivativeSoftmax(double[][] a3, double[][] y){
+            double[][] softmax = a3;
+            double[][] result = new double[a3.Length][];
+            for (int i = 0; i < a3.Length; i++)
             {
-                result[i] = new double[z[0].Length];
-                for (int j = 0; j < z[0].Length; j++)
+                result[i] = new double[a3[0].Length];
+                for (int j = 0; j < a3[0].Length; j++)
                 {
-                    result[i][j] = softmax[i][j] - 1*y[i][j];     
+                    result[i][j] = softmax[i][j] - y[i][j];     
                 }
             }
             return result;
@@ -113,7 +112,6 @@
         }
 
         public double EntropyLoss(double[][] y, double[][] y_pred){
-            
             double result = 0;
             for (int i = 0; i < y.Length; i++)
             {
@@ -142,9 +140,6 @@
         }
 
         public void Backward(double[][] x, double[][] y){
-            //Inutile?
-            //int m = x.Length;
-
             double[][] dz3 = this.DerivativeSoftmax(this.A3!, y);
 
             double [][] dw2 = MatrixOperation.DotProduct(MatrixOperation.Transpose(this.A2!), dz3);
@@ -162,8 +157,8 @@
 
 
             this.W2 = MatrixOperation.Diff(this.W2, MatrixOperation.DotConstant(dw2, this.LearningRate));
-            var fakeB2 = new double[][] {this.B2};
-            var fakedb2 = new double[][] {db2};
+            double[][] fakeB2 = new double[][] {this.B2};
+            double[][] fakedb2 = new double[][] {db2};
             this.B2 = MatrixOperation.Diff(fakeB2, MatrixOperation.DotConstant(fakedb2, this.LearningRate))[0];
 
             this.W1 = MatrixOperation.Diff(this.W1, MatrixOperation.DotConstant(dw1, this.LearningRate));
