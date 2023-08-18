@@ -41,21 +41,21 @@
                 numerator[i] = new double[y];
                 double[][]? new_z = z.Clone() as double[][];
                 var valeurDiminuer = 0.0;
-                if(new_z![i].Max() > 709 ){
+                if(new_z![i].Max() > ChessConstant.EXP_MAX_VALUE ){
                     valeurDiminuer = new_z[i].Max();
                 } 
                 
-                if(new_z![i].Min() <= -744){
-                    valeurDiminuer -= new_z![i].Min() - 744;
+                if(new_z![i].Min() <=  ChessConstant.MIN_VALUE_EXP){
+                    valeurDiminuer -= new_z![i].Min() + ChessConstant.MIN_VALUE_EXP;
                 } 
                 
                 for (int j = 0; j < y; j++)
                 {
                     
-                    numerator[i][j]=Math.Exp(z[i][j] - valeurDiminuer);  
-                    if(double.IsNaN( numerator[i][j]) || double.IsInfinity(numerator[i][j]) || numerator[i][j] == 0)
+                    numerator[i][j]=Math.Exp(z[i][j] - valeurDiminuer) + double.Epsilon;  
+                    if(double.IsNaN( numerator[i][j]) || double.IsInfinity(numerator[i][j]))
                     {
-                        throw new Exception("Math.Exp donne un Nan, un Infini ou 0. Valuer:" + numerator[i][j]);
+                        throw new Exception("Math.Exp donne un Nan, un Infini ou 0. Valeur:" + numerator[i][j]);
                     }
                 }
             }
@@ -182,5 +182,8 @@
             return this.Loss;
         }
 
+        public double[][] Predict(double[][] x){
+            return this.Forward(x);
+        }
     }
 }
