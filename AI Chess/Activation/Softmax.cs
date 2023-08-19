@@ -27,16 +27,16 @@ namespace AI_Chess.Activation
                 {
                     
                     numerator[i][j]=Math.Exp(z[i][j] - valeurDiminuer) + double.Epsilon;  
-                    if(double.IsNaN( numerator[i][j]) || double.IsInfinity(numerator[i][j]))
+                    if(double.IsInfinity(numerator[i][j]))
                     {
-                        throw new Exception("Math.Exp Give Nan or Infinity. Value:" + numerator[i][j]);
+                        throw new Exception("Math.Exp gives Infinity.");
                     }
                 }
 
                 double denominator = numerator[i].Sum();
                 if(double.IsNaN( denominator) || double.IsInfinity(denominator))
                 {
-                    throw new Exception("Denominator give Infinity or Nan");
+                    throw new Exception("Denominator gives Infinity.");
                 }
                 softmax[i] = new double[y]; 
                 for (int j = 0; j < y; j++)
