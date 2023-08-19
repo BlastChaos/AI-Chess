@@ -27,22 +27,27 @@ for (int m = 0; m < numbers.Length ; m++)
         y[m][n] = numbers[m][n] == maxValue ? 1 : 0;
     }
 }
-Node[] nodes = new Node[3];
+Node[] nodes = new Node[4];
 nodes[0] = new Node(){
     Activation = new LeakyRelu(),
-    NbHiddenNode = 100
+    NbHiddenNode = 500
 };
+
 nodes[1] = new Node(){
+    Activation = new LeakyRelu(),
+    NbHiddenNode = 300
+};
+nodes[2] = new Node(){
     Activation = new LeakyRelu(),
     NbHiddenNode = 100
 };
-nodes[2] = new Node(){
+nodes[3] = new Node(){
     Activation = new Softmax(),
     NbHiddenNode = 10
 };
 var nn = new NeuralNetwork(10,0.000001, nodes);
 var debut = DateTime.Now;
-var loss = nn.Train(numbers,y,4);
+var loss = nn.Train(numbers,y,10);
 var fin = DateTime.Now;
 Console.WriteLine("Dernier Loss generer: " + loss.Last());
 Console.WriteLine("Temps pour le générer: " + (fin-debut));

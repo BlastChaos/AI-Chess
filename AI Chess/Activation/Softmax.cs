@@ -2,6 +2,8 @@ namespace AI_Chess.Activation
 {
     public class Softmax : IActivation
     {
+        private readonly double EXP_MAX_VALUE = 709.78271289338;
+        private readonly double MIN_VALUE_EXP = -744;
         public double[][] Activation(double[][] z)
         {
             int x = z.Length;
@@ -17,8 +19,8 @@ namespace AI_Chess.Activation
                 var somme = z![i].Sum(s => s >=0 ? s : 0.0);
                 var t = z![i].Sum(s => s >=0 ? 1 : 0.0);
                 var secondBest = z![i].OrderDescending().Skip(1).First();
-                if(somme > ChessConstant.EXP_MAX_VALUE){
-                    valeurDiminuer = (somme - ChessConstant.EXP_MAX_VALUE)/t + secondBest/t;
+                if(somme > EXP_MAX_VALUE){
+                    valeurDiminuer = (somme - EXP_MAX_VALUE)/t + secondBest/t*1.3;
                 } 
 
                 for (int j = 0; j < y; j++)
