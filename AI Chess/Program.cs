@@ -40,10 +40,9 @@ nodes[2] = new Node(){
     Activation = new Softmax(),
     NbHiddenNode = 10
 };
-var nn = new NeuralNetwork(10,100,10,0.0001, nodes);
+var nn = new NeuralNetwork(10,0.000001, nodes);
 var debut = DateTime.Now;
 var loss = nn.Train(numbers,y,4);
-var lossTest = nn.TrainTest(numbers,y,4);
 var fin = DateTime.Now;
 Console.WriteLine("Dernier Loss generer: " + loss.Last());
 Console.WriteLine("Temps pour le générer: " + (fin-debut));
