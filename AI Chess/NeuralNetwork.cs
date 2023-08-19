@@ -66,7 +66,6 @@ namespace AI_Chess
             double[][] db = new double[this.Nodes.Length][];
             double[][][] dz = new double[this.Nodes.Length][][];
             for (int i = this.Nodes.Length-1; i >=0; i--){
-                
                 if(this.Nodes[i].Activation is Softmax){
                     dz[i] = this.Nodes[i].Activation!.Derivative(this.A[i+1], y);
                 } else {
