@@ -24,7 +24,7 @@
                 result[i] = new double[z[0].Length];
                 for (int j = 0; j < z[0].Length; j++)
                 {
-                    result[i][j] = z[i][j] <= 0 ? 0 : 1;    
+                    result[i][j] = z[i][j] <= 0 ? alpha : 1;    
                 }
             }
             return result;
