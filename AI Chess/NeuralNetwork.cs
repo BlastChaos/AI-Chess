@@ -27,14 +27,8 @@ namespace AI_Chess
             this.B = new double[this.Nodes!.Length][];
 
             for(int i = 0; i < this.Nodes!.Length; i++){
-                if(i ==0){
-                    this.W[i] = MatrixOperation.GenerateRandomNormal(new Random(), 0, 1, this.NbInputNodes, this.Nodes[i].NbHiddenNode);
-                    this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = 1).ToArray();
-                } else {
-                    this.W[i] = MatrixOperation.GenerateRandomNormal(new Random(), 0, 1, this.Nodes[i-1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                    this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = 1).ToArray();
-                }
-
+                this.W[i] = MatrixOperation.GenerateRandomNormal(new Random(), 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i-1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
+                this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = 1).ToArray();
             }
         }
 
