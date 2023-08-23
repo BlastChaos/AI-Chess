@@ -3,7 +3,6 @@ namespace AI_Chess.Activation
     public class Softmax : IActivation
     {
         private readonly double EXP_MAX_VALUE = 709.78271289338;
-        private readonly double MIN_VALUE_EXP = -744;
         public double[][] Activation(double[][] z)
         {
             int x = z.Length;

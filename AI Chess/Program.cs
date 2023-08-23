@@ -11,8 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 Random random = new();
-double[][] numbers = new double[30000][];
-double[][] y = new double[30000][];
+double[][] numbers = new double[300][];
+double[][] y = new double[300][];
 for (int m = 0; m < numbers.Length ; m++)
 {
     numbers[m] = new double[10];
@@ -29,25 +29,25 @@ for (int m = 0; m < numbers.Length ; m++)
 }
 Node[] nodes = new Node[4];
 nodes[0] = new Node(){
-    Activation = new LeakyRelu(),
+    Activation = new TanH(),
     NbHiddenNode = 500
 };
 
 nodes[1] = new Node(){
-    Activation = new LeakyRelu(),
+    Activation = new Relu(),
     NbHiddenNode = 300
 };
 nodes[2] = new Node(){
-    Activation = new LeakyRelu(),
+    Activation = new TanH(),
     NbHiddenNode = 100
 };
 nodes[3] = new Node(){
     Activation = new Softmax(),
     NbHiddenNode = 10
 };
-var nn = new NeuralNetwork(10,0.000001, nodes);
+var nn = new NeuralNetwork(10,0.001, nodes);
 var debut = DateTime.Now;
-var loss = nn.Train(numbers,y,10);
+var loss = nn.Train(numbers,y,200);
 var fin = DateTime.Now;
 Console.WriteLine("Dernier Loss generer: " + loss.Last());
 Console.WriteLine("Temps pour le générer: " + (fin-debut));
