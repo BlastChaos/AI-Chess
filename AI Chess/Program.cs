@@ -9,7 +9,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+var testDownload = Path.Combine(Directory.GetCurrentDirectory(),"Games");
+GameHelper.DownloadGames("gukesh-d", testDownload).Wait();
+var final = GameHelper.GetGameInfo(testDownload);
 Random random = new();
 double[][] numbers = new double[300][];
 double[][] y = new double[300][];
@@ -29,7 +31,7 @@ for (int m = 0; m < numbers.Length ; m++)
 }
 Node[] nodes = new Node[4];
 nodes[0] = new Node(){
-    Activation = new TanH(),
+    Activation = new Sigmoid(),
     NbHiddenNode = 500
 };
 
@@ -38,16 +40,16 @@ nodes[1] = new Node(){
     NbHiddenNode = 300
 };
 nodes[2] = new Node(){
-    Activation = new TanH(),
+    Activation = new Sigmoid(),
     NbHiddenNode = 100
 };
 nodes[3] = new Node(){
     Activation = new Softmax(),
     NbHiddenNode = 10
 };
-var nn = new NeuralNetwork(10,0.001, nodes);
+var nn = new NeuralNetwork(10,0.00001, nodes);
 var debut = DateTime.Now;
-var loss = nn.Train(numbers,y,200);
+var loss = nn.Train(numbers,y,250);
 var fin = DateTime.Now;
 Console.WriteLine("Dernier Loss generer: " + loss.Last());
 Console.WriteLine("Temps pour le générer: " + (fin-debut));

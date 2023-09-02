@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using AI_Chess.Activation;
 using Microsoft.Net.Http.Headers;
 
 namespace AI_Chess;
@@ -44,6 +47,55 @@ public static class GameHelper
         }
 
         Console.WriteLine("Récupération terminée.");
+    }
+
+    public static List<TurnInfo> GetGameInfo(string outputDirectory)
+    {
+        List<TurnInfo> turnInfos = new List<TurnInfo>();
+        string[] filePaths = Directory.GetFiles(outputDirectory, "*.pgn",
+                                         SearchOption.TopDirectoryOnly);
+
+        foreach (string filePath in filePaths){
+            string input =  File.ReadAllText(filePath);
+            string datePattern = @"Date\s+""(\d{4}.\d{2}.\d{2})""";
+            string whitePattern = @"White\s+""([^""]+)""";
+            string blackPattern = @"Black\s+""([^""]+)""";
+            string movesPattern = @"\d+(\.+)\s+([A-z0-9]+)";
+
+            // Extraction de la date
+            Match dateMatch = Regex.Match(input, datePattern);
+            DateTime.TryParseExact(dateMatch.Groups[1].Value, "yyyy.mm.dd", null, DateTimeStyles.None, out DateTime parsedDate);
+
+            // Extraction du joueur blanc
+            Match whiteMatch = Regex.Match(input, whitePattern);
+            string white = whiteMatch.Groups[1].Value;
+
+            // Extraction du joueur noir
+            Match blackMatch = Regex.Match(input, blackPattern);
+            string black = blackMatch.Groups[1].Value;
+
+            // Extraction de la liste des coups
+            MatchCollection moveMatches = Regex.Matches(input, movesPattern);
+
+            foreach (Match moveMatch in moveMatches)
+            {
+                turnInfos.Add(new TurnInfo(){
+                    BlackUsername = black,
+                    WhiteUsername = white,
+                    Date = parsedDate,
+                    MoveString = moveMatch.Groups[2].Value,
+                    Turn = moveMatch.Groups[1].Value == "." ? Turn.White : Turn.Black,
+                });
+            }
+
+            // Affichage des résultats
+            Console.WriteLine("Date du jeu : " + parsedDate);
+            Console.WriteLine("Joueur Blanc : " + white);
+            Console.WriteLine("Joueur Noir : " + black);
+            Console.WriteLine("Liste des coups :");
+        }
+        Console.WriteLine("Récupération des info terminée.");
+        return turnInfos;
     }
 }
 public class ArchivesResponse
