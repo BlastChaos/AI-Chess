@@ -1,5 +1,6 @@
 using AI_Chess;
 using AI_Chess.Activation;
+using AI_Chess.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-var testDownload = Path.Combine(Directory.GetCurrentDirectory(),"Games");
+builder.Services.AddHttpClient(nameof(ChessController), c => c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"));
+builder.Services.Configure<GameConfig>(builder.Configuration.GetSection(nameof(GameConfig)));
+
+
+/* var testDownload = Path.Combine(Directory.GetCurrentDirectory(),"Games");
 GameHelper.DownloadGames("gukesh-d", testDownload).Wait();
 var final = GameHelper.GetGameInfo(testDownload);
 Random random = new();
@@ -54,26 +59,12 @@ var fin = DateTime.Now;
 Console.WriteLine("Dernier Loss generer: " + loss.Last());
 Console.WriteLine("Temps pour le générer: " + (fin-debut));
 
-/* for (int m = 0; m < 8000 ; m++)
-{
-    numbers[m] = new double[10];
-    for (int n = 0; n < 10 ; n++)
-    {
-        numbers[m][n] = random.NextDouble();
-    }
-    var maxValue = numbers[m].Max();
-    y[m] = new double[10];
-    for (int n = 0; n < 10 ; n++)
-    {
-        y[m][n] = numbers[m][n] == maxValue ? 1 : 0;
-    }
-} */
 var test = nn.Predict(numbers);
 var nbreReussi = 0;
 for (int m = 0; m < test.Length ; m++){
     if(Array.IndexOf(test[m], test[m].Max()) == Array.IndexOf(y[m], y[m].Max()) ) nbreReussi++;
 }
-Console.WriteLine("nbre reussi: " + nbreReussi);
+Console.WriteLine("nbre reussi: " + nbreReussi); */
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

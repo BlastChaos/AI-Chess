@@ -79,13 +79,6 @@ public static class GameHelper
 
             foreach (Match moveMatch in moveMatches)
             {
-                turnInfos.Add(new TurnInfo(){
-                    BlackUsername = black,
-                    WhiteUsername = white,
-                    Date = parsedDate,
-                    MoveString = moveMatch.Groups[2].Value,
-                    Turn = moveMatch.Groups[1].Value == "." ? Turn.White : Turn.Black,
-                });
             }
 
             // Affichage des résultats
@@ -98,18 +91,7 @@ public static class GameHelper
         return turnInfos;
     }
 }
-public class ArchivesResponse
-{
-    public string[] archives { get; set; }
-}
 
-public class GamesResponse
-{
-    public Game[] games { get; set; }
-}
 
-public class Game
-{
-    public string pgn { get; set; }
-    public string url { get; set; }
-}
+
+
