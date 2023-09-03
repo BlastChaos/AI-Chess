@@ -83,11 +83,12 @@ namespace AI_Chess.Controllers
                 board.MoveIndex = -1;
                 foreach (Move moveMatch in board.ExecutedMoves)
                 {
-                    int[,] pieces = new int[8,8];
+                    int[][] pieces = new int[8][];
                     for(short i = 0; i < 8; i++){
+                        pieces[i] = new int[8];
                         for(short j = 0; j< 8; j++) {
                             if(board[i,j] != null)
-                            pieces[i,j] = board[i,j].Color.Value == PieceColor.Black.Value ? -board[i,j].Type.Value : board[i,j].Type.Value;
+                            pieces[i][j] = board[i,j].Color.Value == PieceColor.Black.Value ? -board[i,j].Type.Value : board[i,j].Type.Value;
                         }
                     }
                     turnInfos.Add(new TurnInfo(){
