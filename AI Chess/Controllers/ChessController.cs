@@ -73,7 +73,7 @@ namespace AI_Chess.Controllers
             int gameCount = 0;
             foreach (string filePath in filePaths){
                 string input =  System.IO.File.ReadAllText(filePath);
-                if(!ChessBoard.TryLoadFromPgn(input, out var  board)){
+                if(!ChessBoard.TryLoadFromPgn(input, out ChessBoard board)){
                     _logger.LogWarning("{filePath} n'as pas pu être utilisé", filePath);
                     continue;
 
@@ -83,15 +83,19 @@ namespace AI_Chess.Controllers
                 board.MoveIndex = -1;
                 foreach (Move moveMatch in board.ExecutedMoves)
                 {
-                    Piece[,] pieces = new Piece[8,8];
+                    int[,] pieces = new int[8,8];
                     for(short i = 0; i < 8; i++){
                         for(short j = 0; j< 8; j++) {
-                            pieces[i,j] = board[i,j];
+                            if(board[i,j] != null)
+                            pieces[i,j] = board[i,j].Color.Value == PieceColor.Black.Value ? -board[i,j].Type.Value : board[i,j].Type.Value;
                         }
                     }
                     turnInfos.Add(new TurnInfo(){
-                        Pieces = pieces,
-                        Move = moveMatch,
+                        OriginalPositions = pieces,
+                        OriginalPositionX = moveMatch.OriginalPosition.X,
+                        OriginalPositionY = moveMatch.OriginalPosition.Y,
+                        NewPositionX = moveMatch.NewPosition.X,
+                        NewPositionY = moveMatch.NewPosition.Y,
                         Turn = board.Turn.Value
                         //Se référer à PieceColor.Black OU white
                     });
