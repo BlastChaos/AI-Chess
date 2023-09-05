@@ -44,6 +44,17 @@ namespace AI_Chess
             }
             return result;
         }
+        public double FonctionCout(double[][] y, double[][] y_pred){
+            double result = 0;
+            for (int i = 0; i < y.Length; i++)
+            {
+                for (int j = 0; j < y[0].Length; j++)
+                {
+                    result += Math.Pow(y_pred[i][j] -y[i][j], 2) * 1/(y_pred[i].Length*2);
+                }
+            }
+            return result;
+        }
 
         public double[][] Forward(double[][] x){
             this.A[0] = x;
@@ -60,8 +71,17 @@ namespace AI_Chess
             double[][] db = new double[this.Nodes.Length][];
             double[][][] dz = new double[this.Nodes.Length][][];
             for (int i = this.Nodes.Length-1; i >=0; i--){
-                if(this.Nodes[i].Activation is Softmax){
-                    dz[i] = this.Nodes[i].Activation!.Derivative(this.A[i+1], y);
+                if(i == this.Nodes.Length-1){
+                    double[][] dA = new double[this.A[i+1].Length][];
+                    for (int l = 0; l < this.A[i+1].Length; l++)
+                    {
+                        dA[l] = new double[this.A[i+1][0].Length];
+                        for (int j = 0; j < this.A[i+1][0].Length; j++)
+                        {
+                            dA[l][j] = (this.A[i+1][l][j] - y[l][j]) / this.A[i+1].Length;     
+                        }
+                    }
+                    dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(this.Z[i], y));
                 } else {
                     var dA = MatrixOperation.DotProduct(dz[i+1], MatrixOperation.Transpose(this.W[i+1]!));
                     dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(this.Z[i], y));
@@ -81,7 +101,7 @@ namespace AI_Chess
         public List<double> Train(double[][] x, double[][] y, int nbreIterations){
             for(int i = 1; i <= nbreIterations; i++){
                 var y_pred = this.Forward(x);
-                var loss = this.EntropyLoss(y, y_pred);
+                var loss = this.FonctionCout(y, y_pred);
                 this.Loss.Add(loss);
                 this.Backward(x,y);
             }
@@ -90,6 +110,52 @@ namespace AI_Chess
 
         public double[][] Predict(double[][] x){
             return this.Forward(x);
+        }
+
+        public void Test(){
+            Random random = new();
+            double[][] numbers = new double[300][];
+            double[][] y = new double[300][];
+            for (int m = 0; m < numbers.Length ; m++)
+            {
+                numbers[m] = new double[10];
+                for (int n = 0; n < 10 ; n++)
+                {
+                    numbers[m][n] = random.NextDouble()*8;
+                }
+                var maxValue = numbers[m].Max();
+                y[m] = new double[10];
+                for (int n = 0; n < 10 ; n++)
+                {
+                    y[m][n] = numbers[m][n] == maxValue ? 1 : 0;
+                }
+            }
+            Node[] nodes = new Node[3];
+            nodes[0] = new Node(){
+                Activation = new Softmax(),
+                NbHiddenNode = 30
+            };
+            nodes[1] = new Node(){
+                Activation = new Softmax(),
+                NbHiddenNode = 30
+            };
+            nodes[2] = new Node(){
+                Activation = new Softmax(),
+                NbHiddenNode = 10
+            };
+            var nn = new NeuralNetwork(10,0.01, nodes);
+            var debut = DateTime.Now;
+            var loss = nn.Train(numbers,y,1000);
+            var fin = DateTime.Now;
+            Console.WriteLine("Dernier Loss generer: " + loss.Last());
+            Console.WriteLine("Temps pour le générer: " + (fin-debut));
+
+            var test = nn.Predict(numbers);
+            var nbreReussi = 0;
+            for (int m = 0; m < test.Length ; m++){
+                if(Array.IndexOf(test[m], test[m].Max()) == Array.IndexOf(y[m], y[m].Max()) ) nbreReussi++;
+            }
+            Console.WriteLine("nbre reussi: " + nbreReussi);
         }
     }
 }

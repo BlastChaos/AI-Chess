@@ -54,7 +54,8 @@ namespace AI_Chess.Activation
                 result[i] = new double[z[0].Length];
                 for (int j = 0; j < z[0].Length; j++)
                 {
-                    result[i][j] = softmax[i][j] - y[i][j];     
+                    //result[i][j] = softmax[i][j] - y[i][j];     
+                    result[i][j] = i == j ? softmax[i][j]  * (1-softmax[i][j]) : -softmax[i][j] * softmax[i][j];
                 }
             }
             return result;
