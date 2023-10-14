@@ -98,12 +98,12 @@ namespace AI_Chess
             }
         }
 
-        public List<double> Train(double[][] x, double[][] y, int nbreIterations){
+        public List<double> Train(double[][] input, double[][] output, int nbreIterations){
             for(int i = 1; i <= nbreIterations; i++){
-                var y_pred = this.Forward(x);
-                var loss = this.FonctionCout(y, y_pred);
+                var y_pred = this.Forward(input);
+                var loss = this.FonctionCout(output, y_pred);
                 this.Loss.Add(loss);
-                this.Backward(x,y);
+                this.Backward(input,output);
             }
             return this.Loss;
         }
