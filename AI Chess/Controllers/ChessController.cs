@@ -81,11 +81,26 @@ namespace AI_Chess.Controllers
                 new Node()
                 {
                     Activation = new Sigmoid(),
-                    NbHiddenNode = 200
+                    NbHiddenNode = 50
                 },
                 new Node()
                 {
-                    Activation = new Softmax(),
+                    Activation = new Relu(),
+                    NbHiddenNode = 50
+                },
+                new Node()
+                {
+                    Activation = new Sigmoid(),
+                    NbHiddenNode = 50
+                },
+                new Node()
+                {
+                    Activation = new Relu(),
+                    NbHiddenNode = 50
+                },
+                new Node()
+                {
+                    Activation = new Sigmoid(),
                     NbHiddenNode = output[0].Length
                 }
             };
@@ -98,7 +113,10 @@ namespace AI_Chess.Controllers
             Random random = new();
             double[][] inputTest = input.Take(10).ToArray();
             double[][] outputTest = output.Take(10).ToArray();
+            var debutTest = DateTime.Now;
             var test = nn.Predict(inputTest);
+            var finTest = DateTime.Now;
+            Console.WriteLine("Temps pour le test: " + (finTest-debutTest));
             return this.Ok(inputTest + " " +  outputTest);
         }
     
