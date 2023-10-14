@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AI_Chess.Activation;
 using Chess;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -62,6 +63,44 @@ namespace AI_Chess.Controllers
                                             SearchOption.TopDirectoryOnly);
             return this.Ok(filePaths);
         }
+
+        [HttpGet("Test")]
+        public ActionResult<List<TurnInfo>> Test(int nbreIterations)
+        {
+            var result3 = (OkObjectResult)this.GetGameInfo().Result; 
+            var result = ((List<TurnInfo>) result3.Value).ToArray();
+            var input = result.Select(x => x.Input()).ToArray();
+            var output = result.Select(x => new double[]{_gameConfig.SoftmaxPercents}).ToArray();
+            List<Node> nodes = new()
+            {
+                new Node()
+                {
+                    Activation = new Relu(),
+                    NbHiddenNode = input[0].Length
+                },
+                new Node()
+                {
+                    Activation = new Sigmoid(),
+                    NbHiddenNode = 200
+                },
+                new Node()
+                {
+                    Activation = new Softmax(),
+                    NbHiddenNode = output[0].Length
+                }
+            };
+            var nn = new NeuralNetwork(input[0].Length,0.0001, nodes.ToArray());
+            var debut = DateTime.Now;
+            var loss = nn.Train(input,output,nbreIterations);
+            var fin = DateTime.Now;
+            Console.WriteLine("Dernier Loss generer: " + loss.Last());
+            Console.WriteLine("Temps pour le générer: " + (fin-debut));
+            Random random = new();
+            double[][] inputTest = input.Take(10).ToArray();
+            double[][] outputTest = output.Take(10).ToArray();
+            var test = nn.Predict(inputTest);
+            return this.Ok(inputTest + " " +  outputTest);
+        }
     
         [HttpGet("GamesInfo")]
         public ActionResult<List<TurnInfo>> GetGameInfo()
@@ -78,7 +117,7 @@ namespace AI_Chess.Controllers
                     continue;
 
                 }
-                gameCount++;
+                
 
                 board.MoveIndex = -1;
                 foreach (Move moveMatch in board.ExecutedMoves)
@@ -101,6 +140,13 @@ namespace AI_Chess.Controllers
                         //Se référer à PieceColor.Black OU white
                     });
                     board.Next();
+                    gameCount++;
+                    if(gameCount == _gameConfig.NumberData){
+                        break;
+                    }
+                }
+                if(gameCount == _gameConfig.NumberData){
+                    break;
                 }
             }
             return this.Ok(turnInfos);

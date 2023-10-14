@@ -99,6 +99,8 @@ namespace AI_Chess
         }
 
         public List<double> Train(double[][] input, double[][] output, int nbreIterations){
+            if(input[0].Length != this.NbInputNodes) throw new Exception("Invalid input");
+            if(output[0].Length != this.Nodes.Last().NbHiddenNode) throw new Exception("Invalid output");
             for(int i = 1; i <= nbreIterations; i++){
                 var y_pred = this.Forward(input);
                 var loss = this.FonctionCout(output, y_pred);

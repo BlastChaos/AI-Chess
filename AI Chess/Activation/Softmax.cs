@@ -17,9 +17,8 @@ namespace AI_Chess.Activation
                 var valeurDiminuer = 0.0;
                 var somme = z![i].Sum(s => s >=0 ? s : 0.0);
                 var t = z![i].Sum(s => s >=0 ? 1 : 0.0);
-                var secondBest = z![i].OrderDescending().Skip(1).First();
                 if(somme > EXP_MAX_VALUE){
-                    valeurDiminuer = (somme - EXP_MAX_VALUE)/t + secondBest/t*1.3;
+                    valeurDiminuer = (somme - EXP_MAX_VALUE)/t;
                 } 
 
                 for (int j = 0; j < y; j++)
