@@ -70,7 +70,7 @@ namespace AI_Chess.Controllers
             var result3 = (OkObjectResult)this.GetGameInfo().Result; 
             var result = ((List<TurnInfo>) result3.Value).ToArray();
             var input = result.Select(x => x.Input()).ToArray();
-            var output = result.Select(x => new double[]{_gameConfig.SoftmaxPercents}).ToArray();
+            var output = result.Select(x => new double[]{x.Point}).ToArray();
             List<Node> nodes = new()
             {
                 new Node()
@@ -148,15 +148,40 @@ namespace AI_Chess.Controllers
                             pieces[i][j] = board[i,j].Color.Value == PieceColor.Black.Value ? -board[i,j].Type.Value : board[i,j].Type.Value;
                         }
                     }
+                    //Good move
                     turnInfos.Add(new TurnInfo(){
                         OriginalPositions = pieces,
                         OriginalPositionX = moveMatch.OriginalPosition.X,
                         OriginalPositionY = moveMatch.OriginalPosition.Y,
                         NewPositionX = moveMatch.NewPosition.X,
                         NewPositionY = moveMatch.NewPosition.Y,
+                        Point = _gameConfig.GoodMovePoint,
                         Turn = board.Turn.Value
                         //Se référer à PieceColor.Black OU white
                     });
+
+                    //Bad move point
+                    int moveCount = 0;
+                    foreach(var badMove in board.Moves()){
+                        if(badMove.ToString() == moveMatch.ToString()) {
+                            continue;
+                        }
+                        turnInfos.Add(new TurnInfo(){ 
+                            OriginalPositions = pieces,
+                            OriginalPositionX = badMove.OriginalPosition.X,
+                            OriginalPositionY = badMove.OriginalPosition.Y,
+                            NewPositionX = badMove.NewPosition.X,
+                            NewPositionY = badMove.NewPosition.Y,
+                            Point = _gameConfig.BadMovePoint,
+                            Turn = board.Turn.Value
+                            //Se référer à PieceColor.Black OU white
+                        });
+                        moveCount++;
+                        if(moveCount == _gameConfig.MaxBadMove) {
+                            break;
+                        }
+                    }
+
                     board.Next();
                     gameCount++;
                     if(gameCount == _gameConfig.NumberData){
@@ -169,5 +194,6 @@ namespace AI_Chess.Controllers
             }
             return this.Ok(turnInfos);
         }
+
     }
 }

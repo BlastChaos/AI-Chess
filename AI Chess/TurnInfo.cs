@@ -9,7 +9,7 @@ public class TurnInfo
     public short NewPositionX{ get; set; }
     public short NewPositionY{ get; set; }
     public int[][] OriginalPositions { get; set; }
-
+    public double Point {get; set;}
     public double[] Input(){
         double[] result = new double[OriginalPositions.Length * OriginalPositions[0].Length+5];
         for(int i = 0; i < OriginalPositions.Length; i++){
