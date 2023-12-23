@@ -13,12 +13,14 @@ namespace AI_Chess.Controllers
         private readonly ILogger<ChessController> _logger;
         private readonly HttpClient _httpClient;
         private readonly GameConfig _gameConfig;
+        private readonly NeuralNetwork _neuralNetwork;
 
-        public ChessController(ILogger<ChessController> logger, IHttpClientFactory factory, IOptions<GameConfig> gameConfig)
+        public ChessController(ILogger<ChessController> logger, IHttpClientFactory factory, IOptions<GameConfig> gameConfig, NeuralNetwork neuralNetwork)
         {
             _logger = logger;
             _httpClient = factory.CreateClient(nameof(ChessController));
             _gameConfig = gameConfig.Value;
+            _neuralNetwork = neuralNetwork;
         }
 
         [HttpGet("Download")]
@@ -64,64 +66,36 @@ namespace AI_Chess.Controllers
             return this.Ok(filePaths);
         }
 
-        [HttpGet("Test")]
-        public ActionResult<List<TurnInfo>> Test(int nbreIterations)
+        [HttpGet("Train")]
+        public ActionResult Train(int nbreIterations)
         {
-            var result3 = (OkObjectResult)this.GetGameInfo().Result; 
-            var result = ((List<TurnInfo>) result3.Value).ToArray();
-            var input = result.Select(x => x.Input()).ToArray();
-            var output = result.Select(x => new double[]{x.Point}).ToArray();
-            List<Node> nodes = new()
-            {
-                new Node()
-                {
-                    Activation = new Relu(),
-                    NbHiddenNode = input[0].Length
-                },
-                new Node()
-                {
-                    Activation = new Sigmoid(),
-                    NbHiddenNode = 50
-                },
-                new Node()
-                {
-                    Activation = new Relu(),
-                    NbHiddenNode = 50
-                },
-                new Node()
-                {
-                    Activation = new Sigmoid(),
-                    NbHiddenNode = 50
-                },
-                new Node()
-                {
-                    Activation = new Relu(),
-                    NbHiddenNode = 50
-                },
-                new Node()
-                {
-                    Activation = new Sigmoid(),
-                    NbHiddenNode = output[0].Length
-                }
-            };
-            var nn = new NeuralNetwork(input[0].Length,0.0001, nodes.ToArray());
+            var gameInfos = GetGameInfos(); 
+            var input = gameInfos.Select(x => x.Input()).ToArray();
+            var output = gameInfos.Select(x => new double[]{x.Point}).ToArray();
+
             var debut = DateTime.Now;
-            var loss = nn.Train(input,output,nbreIterations);
+            var loss = _neuralNetwork.Train(input,output,nbreIterations);
             var fin = DateTime.Now;
-            Console.WriteLine("Dernier Loss generer: " + loss.Last());
-            Console.WriteLine("Temps pour le générer: " + (fin-debut));
-            Random random = new();
-            double[][] inputTest = input.Take(10).ToArray();
-            double[][] outputTest = output.Take(10).ToArray();
-            var debutTest = DateTime.Now;
-            var test = nn.Predict(inputTest);
-            var finTest = DateTime.Now;
-            Console.WriteLine("Temps pour le test: " + (finTest-debutTest));
-            return this.Ok(inputTest + " " +  outputTest);
+
+            return this.Ok($"Ai trained with {nbreIterations} iterations in {(fin-debut).TotalSeconds} seconds. Last loss: {loss.Last()}");
+        }
+
+        [HttpGet("Save")]
+        public ActionResult Save()
+        {
+            _neuralNetwork.Save("neuralNetwork.json");
+            return this.Ok($"Ai saved");
+        }
+
+        [HttpGet("Load")]
+        public ActionResult Load()
+        {
+            _neuralNetwork.Load("neuralNetwork.json");
+            return this.Ok($"Ai loaded");
         }
     
-        [HttpGet("GamesInfo")]
-        public ActionResult<List<TurnInfo>> GetGameInfo()
+        [HttpGet("GetGameInfos")]
+        public List<TurnInfo> GetGameInfos()
         {
             List<TurnInfo> turnInfos = new();
             var directory = Path.Combine(Directory.GetCurrentDirectory(), _gameConfig.GamesOutputDirectory);
@@ -130,10 +104,10 @@ namespace AI_Chess.Controllers
             int gameCount = 0;
             foreach (string filePath in filePaths){
                 string input =  System.IO.File.ReadAllText(filePath);
-                if(!ChessBoard.TryLoadFromPgn(input, out ChessBoard board)){
+                var getGame = new Random();
+                if(!ChessBoard.TryLoadFromPgn(input, out ChessBoard board) || getGame.Next(0,2) > 0.5 ){
                     _logger.LogWarning("{filePath} n'as pas pu être utilisé", filePath);
                     continue;
-
                 }
                 
 
@@ -192,8 +166,7 @@ namespace AI_Chess.Controllers
                     break;
                 }
             }
-            return this.Ok(turnInfos);
+            return turnInfos;
         }
-
     }
 }

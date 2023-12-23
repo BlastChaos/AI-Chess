@@ -8,4 +8,5 @@ public class GameConfig
     public double GoodMovePoint { get; set; }
     public double BadMovePoint { get; set; }
     public int MaxBadMove {get; set;}
+    public double LearningRate {get; set;}
 }

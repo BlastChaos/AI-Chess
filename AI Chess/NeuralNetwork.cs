@@ -1,4 +1,5 @@
-﻿using AI_Chess.Activation;
+﻿using System.Text.Json;
+using AI_Chess.Activation;
 
 namespace AI_Chess
 {
@@ -6,8 +7,8 @@ namespace AI_Chess
     {
         private readonly int NbInputNodes;
         private readonly double LearningRate;
-        private readonly double[][][] W;
-        private readonly double[][] B;
+        private double[][][] W;
+        private double[][] B;
         private readonly double[][][] A;
         private readonly double[][][] Z;
         private readonly List<double> Loss;
@@ -112,6 +113,24 @@ namespace AI_Chess
 
         public double[][] Predict(double[][] x){
             return this.Forward(x);
+        }
+
+        public void Save(string filePath){
+            var saveContent = new SaveContent() {
+                B = this.B,
+                W = this.W
+            };
+            string json = JsonSerializer.Serialize(saveContent);
+            File.WriteAllText(filePath, json);
+            Console.WriteLine("a neural network has been saved successfully:" + filePath);
+        }
+
+        public void Load(string filePath){
+            string json = File.ReadAllText(filePath);
+            var loadContent = JsonSerializer.Deserialize<SaveContent>(json);
+            this.W = loadContent.W;
+            this.B = loadContent.B;
+            Console.WriteLine("a neural network has been loaded successfully:" + filePath);
         }
 
         public void Test(){
