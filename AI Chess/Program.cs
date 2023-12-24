@@ -30,6 +30,11 @@ List<Node> nodes = new()
         },
         new Node()
         {
+            Activation = new Sigmoid(),
+            NbHiddenNode = 10
+        },
+        new Node()
+        {
             Activation = new LeakyRelu(),
             NbHiddenNode = 50
         },

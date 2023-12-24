@@ -138,7 +138,7 @@ namespace AI_Chess
             for(int i = 0; i < x; i++){
                 result[i] = new double[y];
                 for(int j = 0; j < y; j++){
-                    result[i][j] = MatrixOperation.GenerateRandomNormal(random, mean, stdDev);
+                    result[i][j] = GenerateRandomNormal(random, mean, stdDev);
                 }
             }
             return result;
