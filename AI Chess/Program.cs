@@ -31,7 +31,7 @@ List<Node> nodes = new()
         new Node()
         {
             Activation = new Sigmoid(),
-            NbHiddenNode = 10
+            NbHiddenNode = 20
         },
         new Node()
         {
