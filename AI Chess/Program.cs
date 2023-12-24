@@ -20,28 +20,23 @@ List<Node> nodes = new()
     {
         new Node()
         {
-            Activation = new Relu(),
+            Activation = new LeakyRelu(),
             NbHiddenNode = 69, // number of cases on the chessboard
         },
         new Node()
         {
-            Activation = new Sigmoid(),
-            NbHiddenNode = 25
+            Activation = new LeakyRelu(),
+            NbHiddenNode = 50
         },
         new Node()
         {
-            Activation = new Relu(),
-            NbHiddenNode = 25
+            Activation = new LeakyRelu(),
+            NbHiddenNode = 50
         },
         new Node()
         {
-            Activation = new Sigmoid(),
-            NbHiddenNode = 25
-        },
-        new Node()
-        {
-            Activation = new Relu(),
-            NbHiddenNode = 25
+            Activation = new LeakyRelu(),
+            NbHiddenNode = 50
         },
         new Node()
         {
