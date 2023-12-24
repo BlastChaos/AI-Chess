@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI Chess", "AI Chess\AI Chess.csproj", "{96FD6CE7-1D0D-4D20-B913-8FF0546447EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "Game\Game.csproj", "{023EBCC9-48F8-4807-8E6B-57A990FA9895}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{96FD6CE7-1D0D-4D20-B913-8FF0546447EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96FD6CE7-1D0D-4D20-B913-8FF0546447EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96FD6CE7-1D0D-4D20-B913-8FF0546447EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{023EBCC9-48F8-4807-8E6B-57A990FA9895}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{023EBCC9-48F8-4807-8E6B-57A990FA9895}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{023EBCC9-48F8-4807-8E6B-57A990FA9895}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{023EBCC9-48F8-4807-8E6B-57A990FA9895}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
