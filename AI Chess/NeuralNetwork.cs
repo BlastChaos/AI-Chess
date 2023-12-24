@@ -29,7 +29,7 @@ namespace AI_Chess
 
             for(int i = 0; i < this.Nodes!.Length; i++){
                 this.W[i] = MatrixOperation.GenerateRandomNormal(new Random(), 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i-1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = 1).ToArray();
+                this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = new Random().NextDouble()).ToArray();
             }
         }
 
@@ -45,7 +45,7 @@ namespace AI_Chess
             }
             return result;
         }
-        public double FonctionCout(double[][] y, double[][] y_pred){
+        public double CostFunction(double[][] y, double[][] y_pred){
             double result = 0;
             for (int i = 0; i < y.Length; i++)
             {
@@ -104,7 +104,7 @@ namespace AI_Chess
             if(output[0].Length != this.Nodes.Last().NbHiddenNode) throw new Exception("Invalid output");
             for(int i = 1; i <= nbreIterations; i++){
                 var y_pred = this.Forward(input);
-                var loss = this.FonctionCout(output, y_pred);
+                var loss = this.EntropyLoss(output, y_pred);
                 this.Loss.Add(loss);
                 this.Backward(input,output);
             }
@@ -131,52 +131,6 @@ namespace AI_Chess
             this.W = loadContent.W;
             this.B = loadContent.B;
             Console.WriteLine("a neural network has been loaded successfully:" + filePath);
-        }
-
-        public void Test(){
-            Random random = new();
-            double[][] numbers = new double[300][];
-            double[][] y = new double[300][];
-            for (int m = 0; m < numbers.Length ; m++)
-            {
-                numbers[m] = new double[10];
-                for (int n = 0; n < 10 ; n++)
-                {
-                    numbers[m][n] = random.NextDouble()*8;
-                }
-                var maxValue = numbers[m].Max();
-                y[m] = new double[10];
-                for (int n = 0; n < 10 ; n++)
-                {
-                    y[m][n] = numbers[m][n] == maxValue ? 1 : 0;
-                }
-            }
-            Node[] nodes = new Node[3];
-            nodes[0] = new Node(){
-                Activation = new Softmax(),
-                NbHiddenNode = 30
-            };
-            nodes[1] = new Node(){
-                Activation = new Softmax(),
-                NbHiddenNode = 30
-            };
-            nodes[2] = new Node(){
-                Activation = new Softmax(),
-                NbHiddenNode = 10
-            };
-            var nn = new NeuralNetwork(10,0.01, nodes);
-            var debut = DateTime.Now;
-            var loss = nn.Train(numbers,y,1000);
-            var fin = DateTime.Now;
-            Console.WriteLine("Dernier Loss generer: " + loss.Last());
-            Console.WriteLine("Temps pour le générer: " + (fin-debut));
-
-            var test = nn.Predict(numbers);
-            var nbreReussi = 0;
-            for (int m = 0; m < test.Length ; m++){
-                if(Array.IndexOf(test[m], test[m].Max()) == Array.IndexOf(y[m], y[m].Max()) ) nbreReussi++;
-            }
-            Console.WriteLine("nbre reussi: " + nbreReussi);
         }
     }
 }
