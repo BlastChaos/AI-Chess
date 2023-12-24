@@ -48,12 +48,8 @@ List<Node> nodes = new()
 builder.Services.AddSingleton(new NeuralNetwork(69,gameConfig.LearningRate, nodes.ToArray()));
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 app.UseRewriter(new RewriteOptions().AddRedirect("^$", "swagger"));
 
 app.UseHttpsRedirection();
