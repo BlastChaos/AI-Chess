@@ -7,26 +7,26 @@ using OpenQA.Selenium.Chrome;
 Console.WriteLine("Bienvenue dans le jeu d'échec !");
 IWebDriver driver = new ChromeDriver();
 driver.Navigate().GoToUrl("https://www.google.com");
-Console.WriteLine("Aller à votre partie de jeu et appuyer sur entrée pour continuer");
+Console.WriteLine("Aller à votre partie et appuyer sur entrée lorsque le jeu est comencé");
+Console.ReadLine(); 
+var firstTime = true;
+IWebElement element = null;
 while (true)
 {
     // Attendre une courte période
     Thread.Sleep(1000);
-    IWebElement element;
-    // Vérifier si l'URL a changé
-    try
-    {
+    if(firstTime) {
         element = driver.FindElement(By.TagName("wc-chess-board"));
-    }
-    catch (NoSuchElementException)
-    {
-        // L'élément n'existe pas, la page n'a pas changé
-        continue;
-    }
-    if(element == null) {
-        continue;
-    }
-    Console.WriteLine("oh un jeu d'échec, intéréssant");
+        firstTime = false;
+        if(element == null) 
+            throw new Exception("Impossible de trouver le jeu d'échec");
+        Console.WriteLine("jeu d'échec trouvé");
+            // Vérifier si l'URL a changé
+        IWebElement[] names =  driver.FindElements(By.ClassName("user-username-component")).ToArray();
+        if(names.Length == 2) {
+            Console.WriteLine("Les joueurs sont : " + names[0].Text + " et " + names[1].Text);
+        }
+    } 
     // Vérifier notre couleur
     string classNamwe = element.GetAttribute("class");
     if (classNamwe == "board") {
