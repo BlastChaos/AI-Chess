@@ -7,7 +7,7 @@ using OpenQA.Selenium.Chrome;
 
 //ÉTAPE 1- Trouver le jeu d'échec
 Console.WriteLine("Bienvenue dans le jeu d'échec !");
-var gameConfig = new GameConfig(){
+var gameConfig = new GameConfiguration(){
     FirstTime = true,
     ChessBoard = new ChessBoard(),
     Driver = new ChromeDriver()
@@ -29,48 +29,34 @@ while (true)
             // Vérifier si l'URL a changé
         IWebElement[] names =  gameConfig.Driver.FindElements(By.ClassName("user-username-component")).ToArray();
         if(names.Length == 2) {
+            gameConfig.Oppenentname = names[0].Text;
+            gameConfig.Username = names[1].Text;
             Console.WriteLine("Les joueurs sont : " + names[0].Text + " et " + names[1].Text);
         }
-    } 
-    // Vérifier notre couleur
-    string classNamwe = gameConfig.gameWebElement.GetAttribute("class");
-    if (classNamwe == "board") {
-        Console.WriteLine("Je suis les blancs");
-    } else {
-        Console.WriteLine("Je suis les noirs");
-    }
-    
-    var position = gameConfig.gameWebElement.FindElements(By.ClassName("piece")).Select(x => x.GetAttribute("class")).ToList();
-    int[][] pieces = new int[8][];
-    var newchessPositionsPiece = position.Select<string, PositionPiece>(x => {
-        var regex= MyRegex();
-        var match = regex.Match(x);
-        Piece piece = new(match.Groups[1].Value);
-        var position = match.Groups[2].Value;
-        short xPosition = Convert.ToInt16(int.Parse(position[0].ToString())-1);
-        short yPosition = Convert.ToInt16(int.Parse(position[1].ToString())-1);
-        return new(){
-            Piece = piece,
-            Position = new(xPosition, yPosition)
-        };
-    }).ToArray();
-
-    List<PositionPiece> chessPostionPiece = new();
-    for (short i = 0; i < 8; i++)
-    {
-        for (short j = 0; j < 8; j++)
-        {
-            var piece = gameConfig.ChessBoard[i,j];
-            if(piece != null) {
-                chessPostionPiece.Add(new PositionPiece(){
-                    Piece = piece,
-                    Position = new(i,j)
-                });
-            }
+        // Vérifier notre couleur
+        string classNamwe = gameConfig.gameWebElement.GetAttribute("class");
+        if (classNamwe == "board") {
+            Console.WriteLine("Je suis les blancs");
+            gameConfig.Color = PieceColor.White;
+        } else {
+            Console.WriteLine("Je suis les noirs");
+            gameConfig.Color = PieceColor.Black;
         }
+    } 
+
+
+    if(!gameConfig.IsMyTurn) {
+        Console.WriteLine($"Tour de {gameConfig.Oppenentname}");
+        Function.GetOpponentMove(gameConfig);
+        var oppenentMove = gameConfig.ChessBoard.ExecutedMoves.Last();
+        continue;
+    } else {
+        Console.WriteLine($"Tour de {gameConfig.Username}");
+        var move = Function.GetMove(gameConfig.ChessBoard);
+        gameConfig.ChessBoard.Move(move);
+        Function.PlayMove(gameConfig, move);
+        Console.WriteLine($"Mouvement de {gameConfig.Oppenentname} : {oppenentMove}");
     }
-    var move = Function.GetMove(chessPostionPiece.ToArray(), newchessPositionsPiece, gameConfig.ChessBoard);
-    Console.WriteLine("Mon mouvement est : " + move.ToString());
 }
 
 /*
