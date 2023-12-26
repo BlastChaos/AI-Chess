@@ -20,7 +20,7 @@ public class Worker : BackgroundService
         var firstTime = true;
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
             if (firstTime)
             {
                  _logger.LogInformation("Downloading games");
