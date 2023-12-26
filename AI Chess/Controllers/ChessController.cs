@@ -55,7 +55,7 @@ namespace AI_Chess.Controllers
                         // Écrire le PGN dans le fichier
                         await System.IO.File.WriteAllTextAsync(fileName, pgn);
 
-                        _logger.LogInformation("Partie récupérée: {filename}", fileName);
+                        //_logger.LogInformation("Partie récupérée: {filename}", fileName);
                     }
                 }
 
@@ -84,6 +84,7 @@ namespace AI_Chess.Controllers
         public ActionResult Save()
         {
             _neuralNetwork.Save("neuralNetwork.json");
+            _logger.LogInformation("Ai saved");
             return this.Ok($"Ai saved");
         }
 
@@ -91,6 +92,7 @@ namespace AI_Chess.Controllers
         public ActionResult Load()
         {
             _neuralNetwork.Load("neuralNetwork.json");
+            _logger.LogInformation("Ai loaded");
             return this.Ok($"Ai loaded");
         }
     
