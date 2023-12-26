@@ -29,7 +29,7 @@ public class Worker : BackgroundService
             }
             _logger.LogInformation("Training start with {iterations} iterations", _chessController);
             _chessController.Train(_neuralConfig.Value.BackgroundIterations);
-            _logger.LogInformation("Training ending");
+            _logger.LogInformation("Training end");
             _chessController.Save();
             await Task.Delay(TimeSpan.FromHours(12), stoppingToken);
         }
