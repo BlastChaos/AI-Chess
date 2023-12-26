@@ -18,23 +18,16 @@ public partial class Function {
         throw new Exception("Aucun mouvement valide");
     }
 
-    public static void GetOurMove(GameConfiguration  gameConfig){
+    public static void GetOurMove(GameConfig  gameConfig){
         var allPossibleMoves = gameConfig.ChessBoard.Moves();
-        List<TurnInfo> turnInfos = new();
+        var boardInt = ChessBoardOp.TransformChessBoard(gameConfig.ChessBoard);
+
         foreach(var move in allPossibleMoves){
-            turnInfos.Add(new TurnInfo(){
-                OriginalPositions = move.Piece,
-                OriginalPositionX = move.OriginalPosition.X,
-                OriginalPositionY = move.OriginalPosition.Y,
-                NewPositionX = move.NewPosition.X,
-                NewPositionY = move.NewPosition.Y,
-                Point = gameConfig.GoodMovePoint,
-                Turn = gameConfig.ChessBoard.Turn.Value
-            });
+            var neuralInput = ChessBoardOp.GetNeuralInput(boardInt, move.NewPosition.X, move.NewPosition.Y, move.OriginalPosition.X, move.OriginalPosition.Y, gameConfig.ChessBoard.Turn.Value);
         }
     }
 
-    public static void GetOpponentMove(GameConfiguration  gameConfig){
+    public static void GetOpponentMove(GameConfig  gameConfig){
         Move? move = null;
 
         while(move == null){

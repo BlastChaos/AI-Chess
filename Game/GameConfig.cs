@@ -1,7 +1,7 @@
 using Chess;
 using OpenQA.Selenium;
 namespace Game {
-    public class GameConfiguration {
+    public class GameConfig {
         public required IWebDriver Driver {get; set;}
         public required ChessBoard ChessBoard {get; set;}
         public required  bool FirstTime {get; set;}

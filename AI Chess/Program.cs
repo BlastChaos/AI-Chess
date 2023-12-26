@@ -12,9 +12,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient(nameof(ChessController), c => c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"));
-builder.Services.Configure<GameConfig>(builder.Configuration.GetSection(nameof(GameConfig)));
+builder.Services.Configure<NeuralConfig>(builder.Configuration.GetSection(nameof(NeuralConfig)));
 
-var gameConfig = builder.Configuration.GetSection(nameof(GameConfig)).Get<GameConfig>();
+var gameConfig = builder.Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>();
 
 List<Node> nodes = new()
     {

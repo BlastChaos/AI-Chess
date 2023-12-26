@@ -12,24 +12,24 @@ namespace AI_Chess.Controllers
     {
         private readonly ILogger<ChessController> _logger;
         private readonly HttpClient _httpClient;
-        private readonly GameConfig _gameConfig;
+        private readonly NeuralConfig _neuralConfig;
         private readonly NeuralNetwork _neuralNetwork;
 
-        public ChessController(ILogger<ChessController> logger, IHttpClientFactory factory, IOptions<GameConfig> gameConfig, NeuralNetwork neuralNetwork)
+        public ChessController(ILogger<ChessController> logger, IHttpClientFactory factory, IOptions<NeuralConfig> gameConfig, NeuralNetwork neuralNetwork)
         {
             _logger = logger;
             _httpClient = factory.CreateClient(nameof(ChessController));
-            _gameConfig = gameConfig.Value;
+            _neuralConfig = gameConfig.Value;
             _neuralNetwork = neuralNetwork;
         }
 
         [HttpGet("Download")]
         public async Task<ActionResult<string>> DownloadGames()
         {
-            var directory = Path.Combine(Directory.GetCurrentDirectory(),_gameConfig.GamesOutputDirectory);
+            var directory = Path.Combine(Directory.GetCurrentDirectory(),_neuralConfig.GamesOutputDirectory);
             //var dir = new DirectoryInfo(directory);
             //dir.Delete(true);
-            foreach (var username in _gameConfig.Users){
+            foreach (var username in _neuralConfig.Users){
                 // Obtenir la liste des liens d'archives
                 string archivesURL = $"https://api.chess.com/pub/player/{username}/games/archives";
                 string archivesResponse = await _httpClient.GetStringAsync(archivesURL);
@@ -70,7 +70,7 @@ namespace AI_Chess.Controllers
         public ActionResult Train(int nbreIterations)
         {
             var gameInfos = GetGameInfos(); 
-            var input = gameInfos.Select(x => x.Input()).ToArray();
+            var input = gameInfos.Select(x =>  ChessBoardOp.GetNeuralInput(x.OriginalPositions,x.NewPositionX,x.NewPositionY,x.OriginalPositionX,x.OriginalPositionY, x.Turn)).ToArray();
             var output = gameInfos.Select(x => new double[]{x.Point}).ToArray();
 
             var debut = DateTime.Now;
@@ -98,7 +98,7 @@ namespace AI_Chess.Controllers
         public List<TurnInfo> GetGameInfos()
         {
             List<TurnInfo> turnInfos = new();
-            var directory = Path.Combine(Directory.GetCurrentDirectory(), _gameConfig.GamesOutputDirectory);
+            var directory = Path.Combine(Directory.GetCurrentDirectory(), _neuralConfig.GamesOutputDirectory);
             string[] filePaths = Directory.GetFiles(directory, "*.pgn",
                                             SearchOption.TopDirectoryOnly);
             int gameCount = 0;
@@ -114,14 +114,15 @@ namespace AI_Chess.Controllers
                 board.MoveIndex = -1;
                 foreach (Move moveMatch in board.ExecutedMoves)
                 {
-                    int[][] pieces = new int[8][];
-                    for(short i = 0; i < 8; i++){
-                        pieces[i] = new int[8];
-                        for(short j = 0; j< 8; j++) {
-                            if(board[i,j] != null)
-                            pieces[i][j] = board[i,j].Color.Value == PieceColor.Black.Value ? -board[i,j].Type.Value : board[i,j].Type.Value;
-                        }
-                    }
+                    int[][] pieces = ChessBoardOp.TransformChessBoard(board);
+                    // for (int i = 0; i < pieces.Length; i++)
+                    // {
+                    //     for (int j = 0; j < pieces[i].Length; j++)
+                    //     {
+                    //         Console.Write(pieces[i][j] + " ");
+                    //     }
+                    //     Console.WriteLine();
+                    // }
                     //Good move
                     turnInfos.Add(new TurnInfo(){
                         OriginalPositions = pieces,
@@ -129,7 +130,7 @@ namespace AI_Chess.Controllers
                         OriginalPositionY = moveMatch.OriginalPosition.Y,
                         NewPositionX = moveMatch.NewPosition.X,
                         NewPositionY = moveMatch.NewPosition.Y,
-                        Point = _gameConfig.GoodMovePoint,
+                        Point = _neuralConfig.GoodMovePoint,
                         Turn = board.Turn.Value
                         //Se référer à PieceColor.Black OU white
                     });
@@ -146,23 +147,23 @@ namespace AI_Chess.Controllers
                             OriginalPositionY = badMove.OriginalPosition.Y,
                             NewPositionX = badMove.NewPosition.X,
                             NewPositionY = badMove.NewPosition.Y,
-                            Point = _gameConfig.BadMovePoint,
+                            Point = _neuralConfig.BadMovePoint,
                             Turn = board.Turn.Value
                             //Se référer à PieceColor.Black OU white
                         });
                         moveCount++;
-                        if(moveCount == _gameConfig.MaxBadMove) {
+                        if(moveCount == _neuralConfig.MaxBadMove) {
                             break;
                         }
                     }
 
                     board.Next();
                     gameCount++;
-                    if(gameCount == _gameConfig.NumberData){
+                    if(gameCount == _neuralConfig.NumberData){
                         break;
                     }
                 }
-                if(gameCount == _gameConfig.NumberData){
+                if(gameCount == _neuralConfig.NumberData){
                     break;
                 }
             }

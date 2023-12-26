@@ -1,6 +1,6 @@
 ﻿namespace AI_Chess;
 
-public class GameConfig
+public class NeuralConfig
 {
     public string[] Users { get; set; }
     public string GamesOutputDirectory { get; set; }

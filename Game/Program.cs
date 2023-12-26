@@ -7,7 +7,7 @@ using OpenQA.Selenium.Chrome;
 
 //ÉTAPE 1- Trouver le jeu d'échec
 Console.WriteLine("Bienvenue dans le jeu d'échec !");
-var gameConfig = new GameConfiguration(){
+var gameConfig = new GameConfig(){
     FirstTime = true,
     ChessBoard = new ChessBoard(),
     Driver = new ChromeDriver()
