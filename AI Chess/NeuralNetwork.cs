@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using AI_Chess.Activation;
 
 namespace AI_Chess
 {
