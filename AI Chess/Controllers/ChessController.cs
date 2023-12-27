@@ -29,7 +29,11 @@ namespace AI_Chess.Controllers
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
+            } else {
+                Directory.Delete(directory, true);
+                Directory.CreateDirectory(directory);
             }
+            var gameCount = 0;
             foreach (var username in _neuralConfig.Users){
                 // Obtenir la liste des liens d'archives
                 string archivesURL = $"https://api.chess.com/pub/player/{username}/games/archives";
@@ -58,12 +62,21 @@ namespace AI_Chess.Controllers
 
                         // Écrire le PGN dans le fichier
                         await System.IO.File.WriteAllTextAsync(fileName, pgn);
-
+                        gameCount++;
+                        if(gameCount == _neuralConfig.NumberData){
+                            break;
+                        }
                         //_logger.LogInformation("Partie récupérée: {filename}", fileName);
+                    }
+                    if(gameCount == _neuralConfig.NumberData){
+                        break;
                     }
                 }
 
                 _logger.LogInformation("Récupération du joueur {username} terminée.", username);
+                if(gameCount == _neuralConfig.NumberData){
+                    break;
+                }
             }
             string[] filePaths = Directory.GetFiles(directory, "*.pgn",
                                             SearchOption.TopDirectoryOnly);
