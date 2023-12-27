@@ -89,7 +89,7 @@ namespace AI_Chess.Controllers
             var gameInfos = GetGameInfos(); 
             var input = gameInfos.Select(x =>  ChessBoardOp.GetNeuralInput(x.OriginalPositions,x.NewPositionX,x.NewPositionY,x.OriginalPositionX,x.OriginalPositionY, x.Turn)).ToArray();
             var output = gameInfos.Select(x => new double[]{x.Point}).ToArray();
-
+            gameInfos.Clear();
             var debut = DateTime.Now;
             var loss = _neuralNetwork.Train(input,output,nbreIterations);
             var fin = DateTime.Now;
