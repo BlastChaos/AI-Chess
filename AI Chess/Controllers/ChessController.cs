@@ -27,8 +27,10 @@ namespace AI_Chess.Controllers
         public async Task<ActionResult<string>> DownloadGames()
         {
             var directory = Path.Combine(Directory.GetCurrentDirectory(),_neuralConfig.GamesOutputDirectory);
-            //var dir = new DirectoryInfo(directory);
-            //dir.Delete(true);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
             foreach (var username in _neuralConfig.Users){
                 // Obtenir la liste des liens d'archives
                 string archivesURL = $"https://api.chess.com/pub/player/{username}/games/archives";
@@ -47,7 +49,10 @@ namespace AI_Chess.Controllers
 
                         string pgn = game.pgn;
                         string gameUrl = game.url;
-
+                        if(string.IsNullOrEmpty(pgn) || !ChessBoard.TryLoadFromPgn(pgn, out ChessBoard board)) {
+                            _logger.LogWarning("Game {gameUrl} cannot be used", gameUrl);
+                            continue;
+                        }
                         // Créer un nom de fichier unique pour chaque partie en utilisant la date
                         string date = DateTime.Now.ToString("yyyyMMddHHmmssfff");
                         string fileName = Path.Combine(directory, $"{username}-{date}.pgn");
@@ -83,7 +88,7 @@ namespace AI_Chess.Controllers
         [HttpGet("Save")]
         public ActionResult Save()
         {
-            _neuralNetwork.Save("neuralNetwork.json");
+            _neuralNetwork.Save(_neuralConfig.BrainFileName);
             _logger.LogInformation("Ai saved");
             return this.Ok($"Ai saved");
         }
@@ -91,7 +96,7 @@ namespace AI_Chess.Controllers
         [HttpGet("Load")]
         public ActionResult Load()
         {
-            _neuralNetwork.Load("neuralNetwork.json");
+            _neuralNetwork.Load(_neuralConfig.BrainFileName);
             _logger.LogInformation("Ai loaded");
             return this.Ok($"Ai loaded");
         }
@@ -108,7 +113,7 @@ namespace AI_Chess.Controllers
                 string input =  System.IO.File.ReadAllText(filePath);
                 var getGame = new Random();
                 if(!ChessBoard.TryLoadFromPgn(input, out ChessBoard board) || getGame.Next(0,2) > 0.5 ){
-                    _logger.LogWarning("{filePath} n'as pas pu être utilisé", filePath);
+                    _logger.LogWarning("{filePath} will not be used", filePath);
                     continue;
                 }
                 
@@ -137,8 +142,6 @@ namespace AI_Chess.Controllers
                         //Se référer à PieceColor.Black OU white
                     });
 
-                    //Bad move point
-                    int moveCount = 0;
                     foreach(var badMove in board.Moves()){
                         if(badMove.ToString() == moveMatch.ToString()) {
                             continue;
@@ -153,10 +156,6 @@ namespace AI_Chess.Controllers
                             Turn = board.Turn.Value
                             //Se référer à PieceColor.Black OU white
                         });
-                        moveCount++;
-                        if(moveCount == _neuralConfig.MaxBadMove) {
-                            break;
-                        }
                     }
 
                     board.Next();
