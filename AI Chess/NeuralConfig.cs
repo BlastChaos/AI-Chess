@@ -9,6 +9,5 @@ public class NeuralConfig
     public double BadMovePoint { get; set; }
     public double LearningRate {get; set;}
     public int BackgroundIterations {get; set;}
-    public string SaveName {get; set;}
     public string BrainFileName {get; set;}
 }
