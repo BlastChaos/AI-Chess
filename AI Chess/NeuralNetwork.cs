@@ -23,7 +23,7 @@ namespace AI_Chess
 
             this.A = new double[this.Nodes!.Length+1][][];
             this.Z = new double[this.Nodes!.Length][][];
-            this.W = new double[this.Nodes!.Length][][];
+            this.W = new double[Nodes!.Length][][];
             this.B = new double[this.Nodes!.Length][];
 
             for(int i = 0; i < this.Nodes!.Length; i++){
@@ -58,15 +58,16 @@ namespace AI_Chess
 
         public double[][] Forward(double[][] x){
             this.A[0] = x;
+            double[][] dotProduct;
             for (int i = 0; i < this.Nodes.Length; i++){
-                double[][] dotProduct = MatrixOperation.DotProduct(this.A[i], this.W[i]);
+                dotProduct = MatrixOperation.DotProduct(this.A[i], this.W[i]);
                 this.Z[i] = MatrixOperation.Add(dotProduct, this.B[i]);
                 this.A[i+1] = this.Nodes[i].Activation!.Activation(this.Z[i]);
             }
             return this.A.Last();
         }
 
-        public void Backward(double[][] x, double[][] y){
+        public void Backward(double[][] y){
             double[][][] dw = new double[this.Nodes.Length][][];
             double[][] db = new double[this.Nodes.Length][];
             double[][][] dz = new double[this.Nodes.Length][][];
@@ -91,10 +92,10 @@ namespace AI_Chess
             }
 
             for(int i = 0; i < this.W.Length; i++){
-                this.W[i] = MatrixOperation.Diff(this.W[i], MatrixOperation.DotConstant(dw[i], this.LearningRate));
-                var fakeB = new double[][] {this.B[i]};
+                W[i] = MatrixOperation.Diff(W[i], MatrixOperation.DotConstant(dw[i], this.LearningRate));
+                var fakeB = new double[][] {B[i]};
                 var fakeDB = new double[][] {db[i]};
-                this.B[i] = MatrixOperation.Diff(fakeB, MatrixOperation.DotConstant(fakeDB, this.LearningRate))[0];
+                B[i] = MatrixOperation.Diff(fakeB, MatrixOperation.DotConstant(fakeDB, this.LearningRate))[0];
             }
         }
 
@@ -105,7 +106,7 @@ namespace AI_Chess
                 var y_pred = this.Forward(input);
                 var loss = this.EntropyLoss(output, y_pred);
                 this.Loss.Add(loss);
-                this.Backward(input,output);
+                this.Backward(output);
             }
             return this.Loss;
         }
