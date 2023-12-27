@@ -1,5 +1,4 @@
 using System.Text.Json;
-using AI_Chess.Activation;
 using Chess;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -81,7 +80,7 @@ namespace AI_Chess.Controllers
             var debut = DateTime.Now;
             var loss = _neuralNetwork.Train(input,output,nbreIterations);
             var fin = DateTime.Now;
-
+            _logger.LogInformation("Ai trained with {nbreIterations} iterations in {seconds} seconds. Last loss: {lastLoss}", nbreIterations, (fin-debut).TotalSeconds, loss.Last());
             return this.Ok($"Ai trained with {nbreIterations} iterations in {(fin-debut).TotalSeconds} seconds. Last loss: {loss.Last()}");
         }
 
@@ -111,8 +110,7 @@ namespace AI_Chess.Controllers
             int gameCount = 0;
             foreach (string filePath in filePaths){
                 string input =  System.IO.File.ReadAllText(filePath);
-                var getGame = new Random();
-                if(!ChessBoard.TryLoadFromPgn(input, out ChessBoard board) || getGame.Next(0,2) > 0.5 ){
+                if(!ChessBoard.TryLoadFromPgn(input, out ChessBoard board)){
                     _logger.LogWarning("{filePath} will not be used", filePath);
                     continue;
                 }

@@ -14,6 +14,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient(nameof(ChessController), c => c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"));
 builder.Services.Configure<NeuralConfig>(builder.Configuration.GetSection(nameof(NeuralConfig)));
+builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection(nameof(SmtpConfig)));
+
 builder.Services.AddHostedService<Worker>();
 var gameConfig = builder.Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>();
 
@@ -32,7 +34,7 @@ List<Node> nodes = new()
         new Node()
         {
             Activation = new Sigmoid(),
-            NbHiddenNode = 20
+            NbHiddenNode = 25
         },
         new Node()
         {
