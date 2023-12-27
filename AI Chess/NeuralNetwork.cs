@@ -26,17 +26,19 @@ namespace AI_Chess
             this.W = new double[Nodes!.Length][][];
             this.B = new double[this.Nodes!.Length][];
 
+            var random = new Random();
             for(int i = 0; i < this.Nodes!.Length; i++){
-                this.W[i] = MatrixOperation.GenerateRandomNormal(new Random(), 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i-1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = new Random().NextDouble()).ToArray();
+                this.W[i] = MatrixOperation.GenerateRandomNormal(random, 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i-1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
+                this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = random.NextDouble()).ToArray();
             }
         }
 
         public double EntropyLoss(double[][] y, double[][] y_pred){
             double result = 0;
+            double outputLength = y_pred[0].Length;
             for (int i = 0; i < y.Length; i++)
             {
-                for (int j = 0; j < y[0].Length; j++)
+                for (int j = 0; j < outputLength; j++)
                 {
                     //Prevent taking the log of 0 with double.Epsilon
                     result += -y[i][j] * Math.Log(y_pred[i][j] + double.Epsilon);
@@ -46,9 +48,10 @@ namespace AI_Chess
         }
         public double CostFunction(double[][] y, double[][] y_pred){
             double result = 0;
+            double outputLength = y_pred[0].Length;
             for (int i = 0; i < y.Length; i++)
             {
-                for (int j = 0; j < y[0].Length; j++)
+                for (int j = 0; j < outputLength; j++)
                 {
                     result += Math.Pow(y_pred[i][j] -y[i][j], 2) * 1/(y_pred[i].Length*2);
                 }
@@ -71,20 +74,25 @@ namespace AI_Chess
             double[][][] dw = new double[this.Nodes.Length][][];
             double[][] db = new double[this.Nodes.Length][];
             double[][][] dz = new double[this.Nodes.Length][][];
+            double[][] dA;
+            double[][] a;
+            int aLength;
             for (int i = this.Nodes.Length-1; i >=0; i--){
                 if(i == this.Nodes.Length-1){
-                    double[][] dA = new double[this.A[i+1].Length][];
-                    for (int l = 0; l < this.A[i+1].Length; l++)
+                    a = this.A[i+1];
+                    aLength = a.Length;
+                    dA = new double[aLength][];
+                    for (int l = 0; l < aLength; l++)
                     {
-                        dA[l] = new double[this.A[i+1][0].Length];
-                        for (int j = 0; j < this.A[i+1][0].Length; j++)
+                        dA[l] = new double[a[0].Length];
+                        for (int j = 0; j < a[0].Length; j++)
                         {
-                            dA[l][j] = (this.A[i+1][l][j] - y[l][j]) / this.A[i+1].Length;     
+                            dA[l][j] = (this.A[i+1][l][j] - y[l][j]) / aLength;     
                         }
                     }
                     dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(this.Z[i], y));
                 } else {
-                    var dA = MatrixOperation.DotProduct(dz[i+1], MatrixOperation.Transpose(this.W[i+1]!));
+                    dA = MatrixOperation.DotProduct(dz[i+1], MatrixOperation.Transpose(this.W[i+1]!));
                     dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(this.Z[i], y));
                 }
                 dw[i] = MatrixOperation.DotProduct(MatrixOperation.Transpose(this.A[i]!), dz[i]);
