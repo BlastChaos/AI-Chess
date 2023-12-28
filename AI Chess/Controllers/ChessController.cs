@@ -84,19 +84,19 @@ namespace AI_Chess.Controllers
         }
 
         [HttpGet("Train")]
-        public ActionResult Train(int nbreIterations)
+        public async Task<ActionResult> Train(int nbreIterations)
         {
             var gameInfos = GetGameInfos(); 
             var input = gameInfos.Select(x =>  ChessBoardOp.GetNeuralInput(x.OriginalPositions,x.NewPositionX,x.NewPositionY,x.OriginalPositionX,x.OriginalPositionY, x.Turn)).ToArray();
             var output = gameInfos.Select(x => new double[]{x.Point}).ToArray();
             gameInfos.Clear();
             var debut = DateTime.Now;
-            var loss = _neuralNetwork.Train(input,output,nbreIterations);
+            var loss = await  _neuralNetwork.Train(input,output,nbreIterations);
             var fin = DateTime.Now;
             _logger.LogInformation("Ai trained with {nbreIterations} iterations in {seconds} seconds. Last loss: {lastLoss}", nbreIterations, (fin-debut).TotalSeconds, loss.Last());
             return this.Ok($"Ai trained with {nbreIterations} iterations in {(fin-debut).TotalSeconds} seconds. Last loss: {loss.Last()}");
         }
-
+        /*
         [HttpGet("Save")]
         public ActionResult Save()
         {
@@ -112,7 +112,7 @@ namespace AI_Chess.Controllers
             _logger.LogInformation("Ai loaded");
             return this.Ok($"Ai loaded");
         }
-    
+    */
         [HttpGet("GetGameInfos")]
         public List<TurnInfo> GetGameInfos()
         {
