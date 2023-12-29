@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-
-namespace AI_Chess.Model
+﻿namespace AI_Chess.Model
 {
     public class BContent
     {

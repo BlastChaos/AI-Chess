@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Gera.Chess" Version="1.0.5" />
+    <PackageReference Include="LinqKit" Version="1.2.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.14">
       <PrivateAssets>all</PrivateAssets>

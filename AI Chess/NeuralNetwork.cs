@@ -1,5 +1,7 @@
-﻿using AI_Chess.Context;
+﻿using System.Linq.Expressions;
+using AI_Chess.Context;
 using AI_Chess.Model;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AI_Chess
@@ -10,8 +12,8 @@ namespace AI_Chess
         private readonly double LearningRate;
         //private double[][][] W;
         //private double[][] B;
-        private readonly double[][][] A;
-        private readonly double[][][] Z;
+        //private readonly double[][][] A;
+        //private readonly double[][][] Z;
         private readonly List<double> Loss;
         private readonly Node[] Nodes;
         private readonly ChessDbContext _chessDbContext;
@@ -27,9 +29,9 @@ namespace AI_Chess
             _chessDbContext = chessDbContext;
             _logger = logger;
 
-            this.A = new double[this.Nodes!.Length+1][][];
-            this.Z = new double[this.Nodes!.Length][][];
             /*
+                    this.Z = new double[this.Nodes!.Length][][];
+            this.A = new double[this.Nodes!.Length+1][][];
             this.W = new double[Nodes!.Length][][];
             this.B = new double[this.Nodes!.Length][];
 
@@ -68,17 +70,21 @@ namespace AI_Chess
         }
 
         public async Task<double[][]> Forward(double[][] x){
-            this.A[0] = x;
+            await UpdateContent(0, x, _chessDbContext.AContents, true);
             double[][] dotProduct;
 
             for (int i = 0; i < this.Nodes.Length; i++){
-                var w = await GetWContent(i);
-                var b = await GetBContent(i);
-                dotProduct = MatrixOperation.DotProduct(this.A[i], w);
-                this.Z[i] = MatrixOperation.Add(dotProduct, b);
-                this.A[i+1] = this.Nodes[i].Activation!.Activation(this.Z[i]);
+                var w = await GetContents(i, _chessDbContext.WContents);
+                var b = await GetBContents(i);
+                var a = await GetContents(i, _chessDbContext.AContents);
+                dotProduct = MatrixOperation.DotProduct(a, w);
+                var z = MatrixOperation.Add(dotProduct, b);
+                await UpdateContent(i, z, _chessDbContext.ZContents);
+                await UpdateContent(i+1, this.Nodes[i].Activation!.Activation(z), _chessDbContext.AContents);
+                 await _chessDbContext.SaveChangesAsync();
             }
-            return this.A.Last();
+            var lastA = await GetContents(this.Nodes.Length, _chessDbContext.AContents);
+            return lastA;
         }
 
         public async Task Backward(double[][] y){
@@ -86,34 +92,36 @@ namespace AI_Chess
             double[][] db = new double[this.Nodes.Length][];
             double[][][] dz = new double[this.Nodes.Length][][];
             double[][] dA;
-            double[][] a;
+            double[][] aAfter;
             int aLength;
             for (int i = this.Nodes.Length-1; i >=0; i--){
+                var a = await GetContents(i, _chessDbContext.AContents);
+                var z = await GetContents(i, _chessDbContext.ZContents);
                 if(i == this.Nodes.Length-1){
-                    a = this.A[i+1];
-                    aLength = a.Length;
+                    aAfter = await GetContents(i+1, _chessDbContext.AContents);
+                    aLength = aAfter.Length;
                     dA = new double[aLength][];
                     for (int l = 0; l < aLength; l++)
                     {
-                        dA[l] = new double[a[0].Length];
-                        for (int j = 0; j < a[0].Length; j++)
+                        dA[l] = new double[aAfter[0].Length];
+                        for (int j = 0; j < aAfter[0].Length; j++)
                         {
-                            dA[l][j] = (this.A[i+1][l][j] - y[l][j]) / aLength;     
+                            dA[l][j] = (aAfter[l][j] - y[l][j]) / aLength;     
                         }
                     }
-                    dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(this.Z[i], y));
+                    dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(z, y));
                 } else {
-                    var w = await GetWContent(i + 1);
+                    var w = await GetContents(i + 1, _chessDbContext.WContents);
                     dA = MatrixOperation.DotProduct(dz[i+1], MatrixOperation.Transpose(w!));
-                    dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(this.Z[i], y));
+                    dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(z, y));
                 }
-                dw[i] = MatrixOperation.DotProduct(MatrixOperation.Transpose(this.A[i]!), dz[i]);
+                dw[i] = MatrixOperation.DotProduct(MatrixOperation.Transpose(a), dz[i]);
                 db[i] = MatrixOperation.SumColumn(dz[i]);
             }
 
             for(int i = 0; i < Nodes!.Length; i++){
-                var w = await GetWContent(i);
-                var b = await GetBContent(i);
+                var w = await GetContents(i, _chessDbContext.WContents);
+                var b = await GetBContents(i);
                 var newW = MatrixOperation.Diff(w, MatrixOperation.DotConstant(dw[i], this.LearningRate));
                 var fakeB = new double[][] {b};
                 var fakeDB = new double[][] {db[i]};
@@ -149,19 +157,19 @@ namespace AI_Chess
             return Forward(x);
         }
 
-        private WContent[] ConvertToWContent(int position, double[][] w)
+        private static T[] ConvertToContent<T>(int position, double[][] content) where T : Content, new()
         {
-            var lists = new List<WContent>();
-            for(int i = 0; i < w.Length; i++)
+            var lists = new List<T>();
+            for(int i = 0; i < content.Length; i++)
             {
-                for(int y = 0; y < w[i].Length; y++)
+                for(int y = 0; y < content[i].Length; y++)
                 {
-                    lists.Add(new WContent()
+                    lists.Add(new T()
                     {
                         Position = position,
                         From = i,
                         To = y,
-                        Value = w[i][y]
+                        Value = content[i][y]
                     });
                 }
             }
@@ -192,7 +200,7 @@ namespace AI_Chess
             for (int i = 0; i < Nodes.Length; i++)
             {
                 var w = MatrixOperation.GenerateRandomNormal(random, 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i - 1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                var wContentArray = ConvertToWContent(i, w);
+                var wContentArray = ConvertToContent<WContent>(i, w);
                 wContent.AddRange(wContentArray);
 
                 var b = new double[this.Nodes[i].NbHiddenNode].Select(j => j = random.NextDouble()).ToArray();
@@ -201,17 +209,16 @@ namespace AI_Chess
             }
             await _chessDbContext.WContents.AddRangeAsync(wContent);
             await _chessDbContext.BContents.AddRangeAsync(bContent);
+
+            _chessDbContext.ZContents.RemoveRange(_chessDbContext.ZContents);
+            _chessDbContext.AContents.RemoveRange(_chessDbContext.AContents);
+            
             await _chessDbContext.SaveChangesAsync();
         }
 
         private async Task UpdateDatabase(int position, double[][] w, double[] b)
         {
-            var wContents = ConvertToWContent(position,w);
-            foreach(var wContent in wContents)
-            {
-                var db = _chessDbContext.WContents.Single(w => w.Position == wContent.Position && w.From == wContent.From && w.To == wContent.To);
-                db.Value = wContent.Value;
-            }
+            await UpdateContent(position, w, _chessDbContext.WContents, false);
 
             var bContents = ConvertToBContent(position, b);
             foreach (var bContent in bContents)
@@ -223,29 +230,81 @@ namespace AI_Chess
             await _chessDbContext.SaveChangesAsync();
         }
 
-        private async Task<double[][]> GetWContent(int postition)
+        private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet, bool save = false) where T : Content, new()
         {
-            var xLength = postition == 0 ? this.NbInputNodes : this.Nodes[postition - 1].NbHiddenNode;
-            var yLength = this.Nodes[postition].NbHiddenNode;
+            var contents = ConvertToContent<T>(position,content);
 
-            var wContents = await _chessDbContext.WContents.Where(w => w.Position == postition).ToArrayAsync();
+            var batchSize = 100;
+            var existingEntities = new List<T>();
+
+            for (int i = 0; i < contents.Length; i += batchSize)
+            {
+                var batch = contents.Skip(i).Take(batchSize);
+
+                // Create a predicate that matches any of the keys in the batch
+                var predicate = PredicateBuilder.New<T>(false);
+                foreach (var wContent in batch)
+                {
+                    var positionContent = wContent.Position;
+                    var from = wContent.From;
+                    var to = wContent.To;
+                    predicate = predicate.Or(p => p.Position == positionContent && p.From == from && p.To == to);
+                }
+
+                // Get all existing entities in the batch
+                var batchExistingEntities = dbSet.AsExpandable()
+                    .Where(predicate)
+                    .AsEnumerable().ToArray();
+
+                existingEntities.AddRange(batchExistingEntities);
+            }
+
+
+            var entitiesToCreate = new List<T>();
+            var entitiesToUpdate = new List<T>();
+            foreach (var existingEntity in existingEntities)
+            {
+                var wContent = contents.First(w => w.Position == existingEntity.Position && w.From == existingEntity.From && w.To == existingEntity.To);
+                dbSet.Entry(existingEntity).CurrentValues.SetValues(wContent);
+                entitiesToUpdate.Add(existingEntity);
+
+                // Remove the updated entities from wContents
+                contents = contents.Where(w => w.Position != existingEntity.Position || w.From != existingEntity.From || w.To != existingEntity.To).ToArray();
+            }
+
+            entitiesToCreate.AddRange(contents);
+
+            dbSet.AddRange(entitiesToCreate);
+            dbSet.UpdateRange(entitiesToUpdate);
+
+            if(save){
+                await _chessDbContext.SaveChangesAsync();
+            }
+        }
+        private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
+        {
+            var xLength = await dbSet.CountAsync(c => c.Position == postition && c.To == 0);
+            var yLength = await dbSet.CountAsync(c => c.Position == postition && c.From == 0);
+
+            var contents = await dbSet.Where(c => c.Position == postition).ToArrayAsync();
             var w = new double[xLength][];
+
             for(int i = 0; i < xLength; i++)
             {
                 w[i] = new double[yLength];
             }
-            foreach(var wContent in wContents)
+            foreach(var content in contents)
             {
-                var x = wContent.From;
-                var y = wContent.To;
-                w[x][y] = wContent.Value;
+                var x = content.From;
+                var y = content.To;
+                w[x][y] = content.Value;
             }
             return w;
         }
 
-        private async Task<double[]> GetBContent(int postition)
+        private async Task<double[]> GetBContents(int postition)
         {
-            var xLength = this.Nodes[postition].NbHiddenNode;
+            var xLength = await _chessDbContext.BContents.CountAsync(b => b.Position == postition);
 
             var bContents = await _chessDbContext.BContents.Where(b => b.Position == postition).ToArrayAsync();
             var b = new double[xLength];

@@ -9,6 +9,8 @@ namespace AI_Chess.Context
     public class ChessDbContext : DbContext
     {
         public DbSet<WContent> WContents { get; set; }
+        public DbSet<ZContent> ZContents { get; set; }
+        public DbSet<AContent> AContents { get; set; }
         public DbSet<BContent> BContents { get; set; }
 
         public ChessDbContext(DbContextOptions<ChessDbContext> options) : base(options) { }
@@ -19,6 +21,12 @@ namespace AI_Chess.Context
                 .HasKey(bc => new { bc.Position, bc.To });
 
             modelBuilder.Entity<WContent>()
+                .HasKey(bc => new { bc.Position, bc.To, bc.From });
+
+            modelBuilder.Entity<ZContent>()
+                .HasKey(bc => new { bc.Position, bc.To, bc.From });
+
+            modelBuilder.Entity<AContent>()
                 .HasKey(bc => new { bc.Position, bc.To, bc.From });
         }
 
