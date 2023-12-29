@@ -51,11 +51,11 @@ while (true)
         var oppenentMove = gameConfig.ChessBoard.ExecutedMoves.Last();
         continue;
     } else {
-        Console.WriteLine($"Tour de {gameConfig.Username}");
-        var move = Function.GetMove(gameConfig.ChessBoard);
-        gameConfig.ChessBoard.Move(move);
-        Function.PlayMove(gameConfig, move);
-        Console.WriteLine($"Mouvement de {gameConfig.Oppenentname} : {oppenentMove}");
+        // Console.WriteLine($"Tour de {gameConfig.Username}");
+        // var move = Function.GetMove(gameConfig.ChessBoard);
+        // gameConfig.ChessBoard.Move(move);
+        // Function.PlayMove(gameConfig, move);
+        // Console.WriteLine($"Mouvement de {gameConfig.Oppenentname} : {oppenentMove}");
     }
 }
 
