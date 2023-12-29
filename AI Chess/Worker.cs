@@ -36,7 +36,6 @@ public class Worker : BackgroundService
                 }
                 firstTime = false;
             }
-            _logger.LogInformation("Training start with {iterations} iterations", _neuralConfig.BackgroundIterations);
             await chessController.Train(_neuralConfig.BackgroundIterations);
             _logger.LogInformation("Training end");
             SendEmail();
@@ -53,6 +52,8 @@ public class Worker : BackgroundService
             Credentials = new NetworkCredential(_smtpConfig.From, _smtpConfig.Password)
         };
         var brain = new Attachment(_neuralConfig.BrainFileName);
+        var brain2 = new Attachment($"{_neuralConfig.BrainFileName}-shm");
+        var brain3 = new Attachment($"{_neuralConfig.BrainFileName}-wal");
         var message = new MailMessage
         {
             Subject = "AI Chess",
@@ -64,6 +65,8 @@ public class Worker : BackgroundService
             message.To.Add(to);
         }
         message.Attachments.Add(brain);
+        message.Attachments.Add(brain2);
+        message.Attachments.Add(brain3);
         try
         {
             smtpClient.Send(message);

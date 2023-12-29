@@ -15,8 +15,9 @@ namespace AI_Chess
         private readonly List<double> Loss;
         private readonly Node[] Nodes;
         private readonly ChessDbContext _chessDbContext;
+        private readonly ILogger<NeuralNetwork> _logger;
 
-        public NeuralNetwork(int nbInputNodes, double learningRate, Node[] nodes, ChessDbContext chessDbContext)
+        public NeuralNetwork(int nbInputNodes, double learningRate, Node[] nodes, ChessDbContext chessDbContext, ILogger<NeuralNetwork> logger)
         {
 
             this.NbInputNodes = nbInputNodes;
@@ -24,6 +25,7 @@ namespace AI_Chess
             this.Loss = new List<double>();
             this.Nodes = nodes;
             _chessDbContext = chessDbContext;
+            _logger = logger;
 
             this.A = new double[this.Nodes!.Length+1][][];
             this.Z = new double[this.Nodes!.Length][][];
@@ -128,15 +130,18 @@ namespace AI_Chess
 
             if(wContentLength == 0)
             {
+                _logger.LogInformation("Initialize database");
                 await InitializeDatabase();
             }
-            
+            _logger.LogInformation("Training start with {iterations} iterations", nbreIterations);
             for (int i = 1; i <= nbreIterations; i++){
+                _logger.LogInformation("Iteration {iteration}", i);
                 var y_pred = await this.Forward(input);
                 var loss = this.EntropyLoss(output, y_pred);
                 this.Loss.Add(loss);
                 await this.Backward(output);
             }
+            _logger.LogInformation("Training end");
             return this.Loss;
         }
 
