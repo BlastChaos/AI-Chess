@@ -19,17 +19,6 @@ builder.Services.AddHttpClient(nameof(ChessController), c => c.DefaultRequestHea
 builder.Services.Configure<NeuralConfig>(builder.Configuration.GetSection(nameof(NeuralConfig)));
 builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection(nameof(SmtpConfig)));
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(
-                          policy =>
-                          {
-                              policy.AllowAnyOrigin()
-                                    .AllowAnyHeader()
-                                    .AllowCredentials()
-                                    .AllowAnyMethod();
-                          });
-});
 
 var neuralConfig = builder.Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>();
 
