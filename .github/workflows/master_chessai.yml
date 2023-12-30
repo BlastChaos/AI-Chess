@@ -14,8 +14,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v1
@@ -34,27 +33,6 @@ jobs:
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
-
-  push-to-docker-hub:
-    name: Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./
-          push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ai-chess:latest
 
   deploy:
     runs-on: windows-latest
@@ -76,4 +54,4 @@ jobs:
           app-name: 'ChessAi'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_379F30B7FCC64A2DB37E6FD1F79FCC34 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_72834A2F2ADD49A5871B266096A15FBF }}
