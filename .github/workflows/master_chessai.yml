@@ -76,4 +76,4 @@ jobs:
           app-name: 'ChessAi'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_72834A2F2ADD49A5871B266096A15FBF }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
