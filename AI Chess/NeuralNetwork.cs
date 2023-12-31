@@ -185,34 +185,13 @@ namespace AI_Chess
 
         private async Task UpdateBContent(int position, double[] content)
         {
-            var contents = await _chessDbContext.BContents.SingleAsync(c => c.Position == position);
-            contents.Value = content;
-            _chessDbContext.BContents.Update(contents);
-            await _chessDbContext.SaveChangesAsync();
+            await _chessDbContext.BContents.Where(b => b.Position == position).ExecuteUpdateAsync(w => w.SetProperty(t => t.Value, content));
         }
 
 
         private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet) where T : Content, new()
         {
-            // Récupérer l'entité existante
-            var existingContent = await dbSet.SingleOrDefaultAsync(b => b.Position == position);
-
-            if (existingContent != null)
-            {
-                // Mettre à jour les propriétés de l'entité
-                existingContent.Value = content;
-            }
-            else
-            {
-                // Si l'entité n'existe pas, créez-en une nouvelle
-                var newContent = new T()
-                {
-                    Position = position,
-                    Value = content
-                };
-                await dbSet.AddAsync(newContent);
-            }
-            await _chessDbContext.SaveChangesAsync();
+            await dbSet.Where(w => w.Position == position).ExecuteUpdateAsync(w => w.SetProperty(t => t.Value, content));
         }
         
         private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
