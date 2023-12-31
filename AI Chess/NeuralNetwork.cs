@@ -1,6 +1,8 @@
 ﻿using AI_Chess.Context;
 using AI_Chess.Model;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AI_Chess
 {
@@ -202,8 +204,8 @@ namespace AI_Chess
                 var bContentArray = ConvertToBContent(i, b);
                 bContent.UnionWith(bContentArray);
             }
-            await _chessDbContext.WContents.BulkInsertAsync(wContent);
-            await _chessDbContext.BContents.BulkInsertAsync(bContent);
+            await _chessDbContext.WContents.BulkInsertAsync(wContent, options => options.AutoMapOutputDirection = false);
+            await _chessDbContext.BContents.BulkInsertAsync(bContent, options => options.AutoMapOutputDirection = false);
             
         }
 
@@ -212,23 +214,24 @@ namespace AI_Chess
             await UpdateContent(position, w, _chessDbContext.WContents);
 
             var bContents = ConvertToBContent(position, b);
-
-            await _chessDbContext.BContents.BulkMergeAsync(bContents);
+            await _chessDbContext.BContents.AsNoTracking().Where(b => b.Position == position).ExecuteDeleteAsync();
+            await _chessDbContext.BContents.BulkInsertAsync(bContents, options => options.AutoMapOutputDirection = false);
         }
 
         private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet) where T : Content, new()
         {
             var contents = ConvertToContent<T>(position,content);
-            await dbSet.BulkMergeAsync(contents);
+            await dbSet.AsNoTracking().Where(b => b.Position == position).ExecuteDeleteAsync();
+            await dbSet.BulkInsertAsync(contents, options => options.AutoMapOutputDirection = false);
 
         }
         
         private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
         {
-            var xLength = await dbSet.CountAsync(c => c.Position == postition && c.To == 0);
-            var yLength = await dbSet.CountAsync(c => c.Position == postition && c.From == 0);
+            var xLength = await dbSet.AsNoTracking().CountAsync(c => c.Position == postition && c.To == 0);
+            var yLength = await dbSet.AsNoTracking().CountAsync(c => c.Position == postition && c.From == 0);
 
-            var contents = await dbSet.Where(c => c.Position == postition).ToArrayAsync();
+            var contents = await dbSet.AsNoTracking().Where(c => c.Position == postition).ToArrayAsync();
             var w = new double[xLength][];
 
             for(int i = 0; i < xLength; i++)
@@ -246,9 +249,9 @@ namespace AI_Chess
 
         private async Task<double[]> GetBContents(int postition)
         {
-            var xLength = await _chessDbContext.BContents.CountAsync(b => b.Position == postition);
+            var xLength = await _chessDbContext.BContents.AsNoTracking().CountAsync(b => b.Position == postition);
 
-            var bContents = await _chessDbContext.BContents.Where(b => b.Position == postition).ToArrayAsync();
+            var bContents = await _chessDbContext.BContents.AsNoTracking().Where(b => b.Position == postition).ToArrayAsync();
             var b = new double[xLength];
 
             foreach (var bContent in bContents)
