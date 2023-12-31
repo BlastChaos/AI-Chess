@@ -2,9 +2,8 @@
 {
     public class BContent
     {
+        public int Id { get; set; }
         public int Position { get; set; }
-        public int To { get; set; }
-        public double Value { get; set; }
-
+        public double[] Value { get; set; }
     }
 }

@@ -19,7 +19,19 @@ namespace AI_Chess.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BContent>()
-                .HasKey(bc => new { bc.Position, bc.To });
+            .Property(e => e.Value)
+                .HasConversion(
+                    v => ConvertArrayDoubleToString(v),
+                    v => ConvertToArrayDouble2(v))
+            .Metadata.SetValueComparer(new ValueComparer<double[]>(
+                (c1, c2) => c1.SequenceEqual(c2),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c.ToArray()));
+
+
+            modelBuilder.Entity<BContent>()
+                .HasIndex(e => e.Position)
+                .IsUnique();
 
             modelBuilder.Entity<WContent>()
                 .Property(e => e.Value)
@@ -69,6 +81,14 @@ namespace AI_Chess.Context
         }
 
         private string ConvertArrayDoubleToString(double[][] v){
+            return JsonSerializer.Serialize(v);
+        }
+
+        private double[] ConvertToArrayDouble2(string v){
+            return JsonSerializer.Deserialize<double[]>(v) ?? Array.Empty<double>();
+        }
+
+        private string ConvertArrayDoubleToString(double[] v){
             return JsonSerializer.Serialize(v);
         }
 

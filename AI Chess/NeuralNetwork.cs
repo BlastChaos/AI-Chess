@@ -155,78 +155,74 @@ namespace AI_Chess
             return Forward(x);
         }
 
-        private BContent[] ConvertToBContent(int position, double[] b)
-        {
-            var lists = new List<BContent>();
-            for (int i = 0; i < b.Length; i++)
-            {
-                    lists.Add(new BContent()
-                    {
-                        Position = position,
-                        To = i,
-                        Value = b[i]
-                    });
-            }
-            return lists.ToArray();
-        }
 
         private async Task InitializeDatabase()
         {
-            var wContent = new HashSet<WContent>();
-            var bContent = new HashSet<BContent>();
+            var wContentList = new HashSet<WContent>();
+            var bContentList = new HashSet<BContent>();
 
             var random = new Random();
             for (int i = 0; i < Nodes.Length; i++)
             {
                 var w = MatrixOperation.GenerateRandomNormal(random, 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i - 1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                var wContentArray = new WContent(){Position = i, Value = w};
-                wContent.Add(wContentArray);
+                var wContent = new WContent(){Position = i, Value = w};
+                wContentList.Add(wContent);
 
                 var b = new double[this.Nodes[i].NbHiddenNode].Select(j => j = random.NextDouble()).ToArray();
-                var bContentArray = ConvertToBContent(i, b);
-                bContent.UnionWith(bContentArray);
+                var bContent = new BContent(){Position = i, Value = b};
+                bContentList.Add(bContent);
             }
-            await _chessDbContext.WContents.AddRangeAsync(wContent);
-            await _chessDbContext.BContents.BulkInsertAsync(bContent, options => options.AutoMapOutputDirection = false);
-            
+            await _chessDbContext.WContents.AddRangeAsync(wContentList);
+            await _chessDbContext.BContents.AddRangeAsync(bContentList);
+            await _chessDbContext.SaveChangesAsync();
         }
 
         private async Task UpdateDatabase(int position, double[][] w, double[] b)
         {
             await UpdateContent(position, w, _chessDbContext.WContents);
-
-            var bContents = ConvertToBContent(position, b);
-            await _chessDbContext.BContents.AsNoTracking().Where(b => b.Position == position).ExecuteDeleteAsync();
-            await _chessDbContext.BContents.BulkInsertAsync(bContents, options => options.AutoMapOutputDirection = false);
+            await UpdateBContent(position, b);
         }
+
+        private async Task UpdateBContent(int position, double[] content)
+        {
+            var contents = await _chessDbContext.BContents.SingleAsync(c => c.Position == position);
+            contents.Value = content;
+            _chessDbContext.BContents.Update(contents);
+            await _chessDbContext.SaveChangesAsync();
+        }
+
 
         private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet) where T : Content, new()
         {
-            var contents = await dbSet.SingleAsync(c => c.Position == position);
-            contents.Value = content;
-            dbSet.Update(contents);
+            // Récupérer l'entité existante
+            var existingContent = await dbSet.SingleOrDefaultAsync(b => b.Position == position);
+
+            if (existingContent != null)
+            {
+                // Mettre à jour les propriétés de l'entité
+                existingContent.Value = content;
+            }
+            else
+            {
+                // Si l'entité n'existe pas, créez-en une nouvelle
+                var newContent = new T()
+                {
+                    Position = position,
+                    Value = content
+                };
+                await dbSet.AddAsync(newContent);
+            }
             await _chessDbContext.SaveChangesAsync();
         }
         
         private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
         {
-            var contents = await dbSet.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).SingleAsync();
-            return contents;
+            return await dbSet.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).SingleAsync();
         }
 
         private async Task<double[]> GetBContents(int postition)
         {
-            var xLength = await _chessDbContext.BContents.AsNoTracking().CountAsync(b => b.Position == postition);
-
-            var bContents = await _chessDbContext.BContents.AsNoTracking().Where(b => b.Position == postition).ToArrayAsync();
-            var b = new double[xLength];
-
-            foreach (var bContent in bContents)
-            {
-                var x = bContent.To;
-                b[x] = bContent.Value;
-            }
-            return b;
+            return await _chessDbContext.BContents.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).SingleAsync();
         }
     }
 }
