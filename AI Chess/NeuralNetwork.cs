@@ -185,13 +185,15 @@ namespace AI_Chess
 
         private async Task UpdateBContent(int position, double[] content)
         {
-            await _chessDbContext.BContents.Where(b => b.Position == position).ExecuteUpdateAsync(w => w.SetProperty(t => t.Value, content));
+            var newBContent = new BContent(){Position = position, Value = content};
+            await _chessDbContext.BContents.SingleMergeAsync(newBContent, options => options.ColumnPrimaryKeyExpression = c => c.Position);
         }
 
 
         private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet) where T : Content, new()
         {
-            await dbSet.Where(w => w.Position == position).ExecuteUpdateAsync(w => w.SetProperty(t => t.Value, content));
+            var newContent = new T(){Position = position, Value = content};
+            await dbSet.SingleMergeAsync(newContent, options => options.ColumnPrimaryKeyExpression = c => c.Position);
         }
         
         private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
