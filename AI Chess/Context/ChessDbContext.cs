@@ -1,8 +1,9 @@
 ﻿using AI_Chess.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Hosting;
 using System.Reflection.Metadata;
-
+using System.Text.Json;
 namespace AI_Chess.Context
 {
 
@@ -21,13 +22,54 @@ namespace AI_Chess.Context
                 .HasKey(bc => new { bc.Position, bc.To });
 
             modelBuilder.Entity<WContent>()
-                .HasKey(bc => new { bc.Position, bc.To, bc.From });
+                .Property(e => e.Value)
+                .HasConversion(
+                    v => ConvertArrayDoubleToString(v),
+                    v => ConvertToArrayDouble(v))
+            .Metadata.SetValueComparer(new ValueComparer<double[][]>(
+                (c1, c2) => c1.SequenceEqual(c2),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c.ToArray()));
+
+            modelBuilder.Entity<WContent>()
+                .HasIndex(e => e.Position)
+                .IsUnique();
 
             modelBuilder.Entity<ZContent>()
-                .HasKey(bc => new { bc.Position, bc.To, bc.From });
+                .Property(e => e.Value)
+                .HasConversion(
+                    v => ConvertArrayDoubleToString(v),
+                    v => ConvertToArrayDouble(v))
+            .Metadata.SetValueComparer(new ValueComparer<double[][]>(
+            (c1, c2) => c1.SequenceEqual(c2),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToArray()));
+
+            modelBuilder.Entity<ZContent>()
+                .HasIndex(e => e.Position)
+                .IsUnique();
 
             modelBuilder.Entity<AContent>()
-                .HasKey(bc => new { bc.Position, bc.To, bc.From });
+                .Property(e => e.Value)
+                .HasConversion(
+                    v => ConvertArrayDoubleToString(v),
+                    v => ConvertToArrayDouble(v))
+            .Metadata.SetValueComparer(new ValueComparer<double[][]>(
+            (c1, c2) => c1.SequenceEqual(c2),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToArray()));
+
+            modelBuilder.Entity<AContent>()
+                .HasIndex(e => e.Position)
+                .IsUnique();
+        }
+
+        private double[][] ConvertToArrayDouble(string v){
+            return JsonSerializer.Deserialize<double[][]>(v) ?? Array.Empty<double[]>();
+        }
+
+        private string ConvertArrayDoubleToString(double[][] v){
+            return JsonSerializer.Serialize(v);
         }
 
     }

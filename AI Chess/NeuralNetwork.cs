@@ -1,6 +1,7 @@
 ﻿using AI_Chess.Context;
 using AI_Chess.Model;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -154,25 +155,6 @@ namespace AI_Chess
             return Forward(x);
         }
 
-        private static T[] ConvertToContent<T>(int position, double[][] content) where T : Content, new()
-        {
-            var lists = new HashSet<T>();
-            for(int i = 0; i < content.Length; i++)
-            {
-                for(int y = 0; y < content[i].Length; y++)
-                {
-                    lists.Add(new T()
-                    {
-                        Position = position,
-                        From = i,
-                        To = y,
-                        Value = content[i][y]
-                    });
-                }
-            }
-            return lists.ToArray();
-        }
-
         private BContent[] ConvertToBContent(int position, double[] b)
         {
             var lists = new List<BContent>();
@@ -197,14 +179,14 @@ namespace AI_Chess
             for (int i = 0; i < Nodes.Length; i++)
             {
                 var w = MatrixOperation.GenerateRandomNormal(random, 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i - 1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                var wContentArray = ConvertToContent<WContent>(i, w);
-                wContent.UnionWith(wContentArray);
+                var wContentArray = new WContent(){Position = i, Value = w};
+                wContent.Add(wContentArray);
 
                 var b = new double[this.Nodes[i].NbHiddenNode].Select(j => j = random.NextDouble()).ToArray();
                 var bContentArray = ConvertToBContent(i, b);
                 bContent.UnionWith(bContentArray);
             }
-            await _chessDbContext.WContents.BulkInsertAsync(wContent, options => options.AutoMapOutputDirection = false);
+            await _chessDbContext.WContents.AddRangeAsync(wContent);
             await _chessDbContext.BContents.BulkInsertAsync(bContent, options => options.AutoMapOutputDirection = false);
             
         }
@@ -220,31 +202,16 @@ namespace AI_Chess
 
         private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet) where T : Content, new()
         {
-            var contents = ConvertToContent<T>(position,content);
-            await dbSet.AsNoTracking().Where(b => b.Position == position).ExecuteDeleteAsync();
-            await dbSet.BulkInsertAsync(contents, options => options.AutoMapOutputDirection = false);
-
+            var contents = await dbSet.SingleAsync(c => c.Position == position);
+            contents.Value = content;
+            dbSet.Update(contents);
+            await _chessDbContext.SaveChangesAsync();
         }
         
         private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
         {
-            var xLength = await dbSet.AsNoTracking().CountAsync(c => c.Position == postition && c.To == 0);
-            var yLength = await dbSet.AsNoTracking().CountAsync(c => c.Position == postition && c.From == 0);
-
-            var contents = await dbSet.AsNoTracking().Where(c => c.Position == postition).ToArrayAsync();
-            var w = new double[xLength][];
-
-            for(int i = 0; i < xLength; i++)
-            {
-                w[i] = new double[yLength];
-            }
-            foreach(var content in contents)
-            {
-                var x = content.From;
-                var y = content.To;
-                w[x][y] = content.Value;
-            }
-            return w;
+            var contents = await dbSet.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).SingleAsync();
+            return contents;
         }
 
         private async Task<double[]> GetBContents(int postition)
