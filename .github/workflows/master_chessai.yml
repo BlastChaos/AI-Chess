@@ -31,7 +31,7 @@ jobs:
       with:
         push: true
         tags: docker.io//${{ secrets.DOCKER_HUB_USERNAME }}/blastchaos/ai-chess:${{ github.sha }}
-        file: ./Dockerfile
+        file: ./
 
   deploy:
     runs-on: ubuntu-latest
