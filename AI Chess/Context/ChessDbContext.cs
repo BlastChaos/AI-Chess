@@ -1,8 +1,6 @@
 ﻿using AI_Chess.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.Extensions.Hosting;
-using System.Reflection.Metadata;
 using System.Text.Json;
 namespace AI_Chess.Context
 {

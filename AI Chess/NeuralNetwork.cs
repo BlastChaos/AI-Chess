@@ -1,9 +1,6 @@
 ﻿using AI_Chess.Context;
 using AI_Chess.Model;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace AI_Chess
 {
@@ -11,10 +8,6 @@ namespace AI_Chess
     {
         private readonly int NbInputNodes;
         private readonly double LearningRate;
-        //private double[][][] W;
-        //private double[][] B;
-        //private readonly double[][][] A;
-        //private readonly double[][][] Z;
         private readonly List<double> Loss;
         private readonly Node[] Nodes;
         private readonly ChessDbContext _chessDbContext;
@@ -29,19 +22,6 @@ namespace AI_Chess
             this.Nodes = nodes;
             _chessDbContext = chessDbContext;
             _logger = logger;
-
-            /*
-                    this.Z = new double[this.Nodes!.Length][][];
-            this.A = new double[this.Nodes!.Length+1][][];
-            this.W = new double[Nodes!.Length][][];
-            this.B = new double[this.Nodes!.Length][];
-
-            var random = new Random();
-            for (int i = 0; i < this.Nodes!.Length; i++){
-                this.W[i] = MatrixOperation.GenerateRandomNormal(random, 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i-1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                this.B[i] = new double[this.Nodes[i].NbHiddenNode].Select(j => j = random.NextDouble()).ToArray();
-            }
-            */
         }
 
         public double EntropyLoss(double[][] y, double[][] y_pred){
@@ -143,7 +123,7 @@ namespace AI_Chess
             for (int i = 1; i <= nbreIterations; i++){
                 _logger.LogInformation("Iteration {iteration}", i);
                 var y_pred = await this.Forward(input);
-                var loss = this.EntropyLoss(output, y_pred);
+                var loss = this.CostFunction(output, y_pred);
                 this.Loss.Add(loss);
                 await this.Backward(output);
             }
@@ -168,13 +148,12 @@ namespace AI_Chess
                 var wContent = new WContent(){Position = i, Value = w};
                 wContentList.Add(wContent);
 
-                var b = new double[this.Nodes[i].NbHiddenNode].Select(j => j = random.NextDouble()).ToArray();
+                var b = new double[this.Nodes[i].NbHiddenNode].Select(j => j = 1).ToArray();
                 var bContent = new BContent(){Position = i, Value = b};
                 bContentList.Add(bContent);
             }
-            await _chessDbContext.WContents.AddRangeAsync(wContentList);
-            await _chessDbContext.BContents.AddRangeAsync(bContentList);
-            await _chessDbContext.SaveChangesAsync();
+            await _chessDbContext.WContents.BulkInsertAsync(wContentList);
+            await _chessDbContext.BContents.BulkInsertAsync(bContentList);
         }
 
         private async Task UpdateDatabase(int position, double[][] w, double[] b)
