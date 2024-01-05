@@ -1,44 +1,64 @@
 using System.Text.RegularExpressions;
-using AI_Chess;
 using Chess;
 using Game;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
 
 public partial class Function {
-    private static Move GetMove(PositionPiece[] befores, PositionPiece[] afters, ChessBoard chessBoard) {
-        var before = befores.Single(x => !afters.Any(y =>y.Position.ToString().Equals(x.Position.ToString()) && y.Piece.ToString().Equals(x.Piece.ToString())));
-        
-        foreach(var after in afters) {
-
-            var move = new Move(before.Position, after.Position);
-            if(chessBoard.IsValidMove(move)) {
-                return move;
+    private static Move GetMove(PositionPiece[] afters, ChessBoard chessBoard) {
+        var after = afters.SingleOrDefault(after =>{
+            var before = chessBoard[after.Position];
+            if(before == null || before.ToString() != after.Piece.ToString()) {
+                return true;
             }
-        }
-        throw new Exception("Aucun mouvement valide");
+            return false;
+        }) ?? throw new Exception("No move found");
+
+        var befores = afters.Where(before => before != after);
+
+        var before = chessBoard.Moves().SingleOrDefault(x => x.NewPosition.ToString() == after.Position.ToString() && !befores.Any(before => before.Position.ToString() == x.OriginalPosition.ToString())) ?? throw new Exception("No move found");
+        return before;
     }
 
-    public static void GetOurMove(GameConfig  gameConfig){
+    public static Move GetOurMove(GameConfig  gameConfig){
         var allPossibleMoves = gameConfig.ChessBoard.Moves();
-        var boardInt = ChessBoardOp.TransformChessBoard(gameConfig.ChessBoard);
+        var move = GetMove(allPossibleMoves);
 
-        foreach(var move in allPossibleMoves){
-            var neuralInput = ChessBoardOp.GetNeuralInput(boardInt, move.NewPosition.X, move.NewPosition.Y, move.OriginalPosition.X, move.OriginalPosition.Y, gameConfig.ChessBoard.Turn.Value);
-        }
+        var pieceWebElement = gameConfig.GameWebElement.FindElement(By.ClassName($"square-{1+move.OriginalPosition.X}{1+move.OriginalPosition.Y}"));
+        
+        var offsetX = move.NewPosition.X - move.OriginalPosition.X;
+        var offsetY = move.OriginalPosition.Y - move.NewPosition.Y;
+        var stepX = gameConfig.GameWebElement.Size.Width / 8;
+        var stepY = gameConfig.GameWebElement.Size.Height / 8;
+        Actions builder = new(gameConfig.Driver);
+        builder.DragAndDropToOffset(pieceWebElement, offsetX * stepX, offsetY * stepY).Perform();
+
+        return move;
     }
 
-    public static void GetOpponentMove(GameConfig  gameConfig){
-        Move? move = null;
+    private static Move GetMove(Move[] moves){
+        return moves[0];
+    }
 
+
+    public static Move GetOpponentMove(GameConfig  gameConfig){
+        Move? move = null;
         while(move == null){
-            Thread.Sleep(1000);
-            var position = gameConfig.gameWebElement.FindElements(By.ClassName("piece")).Select(x => x.GetAttribute("class")).ToList();
-            int[][] pieces = new int[8][];
+            Thread.Sleep(3000);
+            var position = gameConfig.GameWebElement.FindElements(By.ClassName("piece")).Select(x => x.GetAttribute("class")).ToList();
             var newchessPositionsPiece = position.Select<string, PositionPiece>(x => {
                 var regex= MyRegex();
                 var match = regex.Match(x);
-                Piece piece = new(match.Groups[1].Value);
-                var position = match.Groups[2].Value;
+                Piece piece;
+                string position;
+                try {
+                    piece = new(match.Groups[1].Value);
+                    position = match.Groups[2].Value;
+                } catch {
+                    piece = new("wp");
+                    position = "11";
+                }
+                
                 short xPosition = Convert.ToInt16(int.Parse(position[0].ToString())-1);
                 short yPosition = Convert.ToInt16(int.Parse(position[1].ToString())-1);
                 return new(){
@@ -47,27 +67,14 @@ public partial class Function {
                 };
             }).ToArray();
 
-            List<PositionPiece> chessPostionPiece = new();
-            for (short i = 0; i < 8; i++)
-            {
-                for (short j = 0; j < 8; j++)
-                {
-                    var piece = gameConfig.ChessBoard[i,j];
-                    if(piece != null) {
-                        chessPostionPiece.Add(new PositionPiece(){
-                            Piece = piece,
-                            Position = new(i,j)
-                        });
-                    }
-                }
-            }
             try {
-                move = GetMove(chessPostionPiece.ToArray(), newchessPositionsPiece, gameConfig.ChessBoard);
-            } catch(Exception) {
+                move = GetMove(newchessPositionsPiece, gameConfig.ChessBoard);
+            } catch(Exception e) {
+                Console.WriteLine(e.Message);
                 continue;
             }
         }
-        gameConfig.ChessBoard.Move(move);
+        return move;
     }
 
     [GeneratedRegex("\\b(?:b?|w?)\\s*(\\b\\w+\\b)\\s*square-(\\d+)")]

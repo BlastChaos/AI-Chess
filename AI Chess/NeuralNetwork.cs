@@ -121,13 +121,15 @@ namespace AI_Chess
             }
             _logger.LogInformation("Training start with {iterations} iterations", nbreIterations);
             for (int i = 1; i <= nbreIterations; i++){
-                _logger.LogInformation("Iteration {iteration}", i);
+                _logger.LogInformation("Iteration {iteration}, current Loss: {loss}", i, this.Loss.LastOrDefault());
                 var y_pred = await this.Forward(input);
                 var loss = this.CostFunction(output, y_pred);
                 this.Loss.Add(loss);
                 await this.Backward(output);
             }
             _logger.LogInformation("Training end");
+            await _chessDbContext.BContents.AsNoTracking().ExecuteDeleteAsync();
+            await _chessDbContext.AContents.AsNoTracking().ExecuteDeleteAsync();
             return this.Loss;
         }
 

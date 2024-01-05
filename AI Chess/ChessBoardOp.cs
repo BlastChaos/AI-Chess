@@ -32,5 +32,22 @@ namespace AI_Chess
             }
             return pieces;
         }
+
+        public static int[][] ConvertToElement(int[][] board){
+            int rowCount = board.Length;
+            int colCount = board[0].Length;
+            int[][] result = new int[colCount][];
+
+            for (int i = 0; i < colCount; i++)
+            {
+                result[i] = new int[rowCount];
+                for (int j = 0; j < rowCount; j++)
+                {
+                    result[i][j] = board[rowCount - j - 1][i];
+                }
+            }
+
+            return result;
+        }
     }
 }

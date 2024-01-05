@@ -6,67 +6,72 @@ using OpenQA.Selenium.Chrome;
 // See https://aka.ms/new-console-template for more information
 
 //ÉTAPE 1- Trouver le jeu d'échec
-Console.WriteLine("Bienvenue dans le jeu d'échec !");
-var gameConfig = new GameConfig(){
-    FirstTime = true,
-    ChessBoard = new ChessBoard(),
-    Driver = new ChromeDriver()
-};
-gameConfig.Driver.Navigate().GoToUrl("https://www.google.com");
-Console.WriteLine("Aller à votre partie et appuyer sur entrée lorsque le jeu est commencé");
+Console.WriteLine("Welcome to the chess bot");
+var chromeOptions = new ChromeOptions();
+chromeOptions.AddArgument("--log-level=3");
+chromeOptions.AddArgument("--silent");
+chromeOptions.AddArgument("--disable-logging");
+
+var driver = new ChromeDriver(chromeOptions);
+GameConfig? gameConfig = null;
+driver.Navigate().GoToUrl("https://www.chess.com/play/computer");
+Console.WriteLine("Go to https://www.chess.com/play/computer and press enter when you are ready");
 Console.ReadLine(); 
 
 while (true)
 {
     // Attendre une courte période
-    Thread.Sleep(1000);
-    if(gameConfig.FirstTime) {
-        gameConfig.gameWebElement = gameConfig.Driver.FindElement(By.TagName("wc-chess-board"));
-        gameConfig.FirstTime = false;
-        if(gameConfig.gameWebElement == null) 
-            throw new Exception("Impossible de trouver le jeu d'échec");
-        Console.WriteLine("jeu d'échec trouvé");
-            // Vérifier si l'URL a changé
-        IWebElement[] names =  gameConfig.Driver.FindElements(By.ClassName("user-username-component")).ToArray();
-        if(names.Length == 2) {
-            gameConfig.Oppenentname = names[0].Text;
-            gameConfig.Username = names[1].Text;
-            Console.WriteLine("Les joueurs sont : " + names[0].Text + " et " + names[1].Text);
-        }
+    if(gameConfig == null) {
+        var gameWebElement = driver.FindElement(By.TagName("wc-chess-board")) 
+                                ?? throw new Exception("Impossible to find the chess board");
+
+        Console.WriteLine("Chess board found");
+        
+        IWebElement[] playerNames =  driver.FindElements(By.ClassName("user-username-component")).ToArray();
+        Console.WriteLine( playerNames[0].Text + " vs " + playerNames[1].Text);
+
         // Vérifier notre couleur
-        string classNamwe = gameConfig.gameWebElement.GetAttribute("class");
-        if (classNamwe == "board") {
-            Console.WriteLine("Je suis les blancs");
-            gameConfig.Color = PieceColor.White;
-        } else {
-            Console.WriteLine("Je suis les noirs");
-            gameConfig.Color = PieceColor.Black;
-        }
-    } 
+        string color = gameWebElement.GetAttribute("class");
+        var pieceColor = color == "board" ? PieceColor.White : PieceColor.Black;
+        Console.WriteLine("I am " + pieceColor);
 
-
-    if(!gameConfig.IsMyTurn) {
-        Console.WriteLine($"Tour de {gameConfig.Oppenentname}");
-        Function.GetOpponentMove(gameConfig);
-        var oppenentMove = gameConfig.ChessBoard.ExecutedMoves.Last();
-        continue;
-    } else {
-        // Console.WriteLine($"Tour de {gameConfig.Username}");
-        // var move = Function.GetMove(gameConfig.ChessBoard);
-        // gameConfig.ChessBoard.Move(move);
-        // Function.PlayMove(gameConfig, move);
-        // Console.WriteLine($"Mouvement de {gameConfig.Oppenentname} : {oppenentMove}");
+        gameConfig = new GameConfig(){
+            ChessBoard = new ChessBoard(),
+            Driver = driver,
+            GameWebElement = gameWebElement,
+            Color = pieceColor,
+            Oppenentname = playerNames[0].Text,
+            Username = playerNames[1].Text,
+        };
     }
+
+    Move move;
+    Console.WriteLine("Current Board");
+    Console.WriteLine(gameConfig.ChessBoard.ToAscii());
+    if(gameConfig.ChessBoard.IsEndGame) {
+        var winner = gameConfig.ChessBoard.EndGame.WonSide.ToString() == gameConfig.Color.ToString() ? gameConfig.Username : gameConfig.Oppenentname;
+        Console.WriteLine($"Checkmate, {winner} won the game!");
+        break;
+    }
+    if(!gameConfig.IsMyTurn) {
+        Console.WriteLine($"Current turn: {gameConfig.Oppenentname}");
+        move = Function.GetOpponentMove(gameConfig);
+    } else {
+        Console.WriteLine($"Current turn: {gameConfig.Username}");
+        move = Function.GetOurMove(gameConfig);
+    }
+
+    var valideMove = gameConfig.ChessBoard.Move(move);
+    if(!valideMove) {
+        throw new Exception("Invalid move");
+    }
+    Console.WriteLine($"Move played: {move}");
 }
 
-/*
-ÉTAPES
-1. Trouver le jeu d'échec
-2. Vérifier notre tour au début du jeu
-    2.1 si c'est notre tour, on joue
-    2.2 si ce n'est pas notre tour, on attend
-3. Alterner
-*/
+Console.WriteLine("End of the game");
+
+
+
 public partial class Program {
     [GeneratedRegex("\\b(?:b?|w?)\\s*(\\b\\w+\\b)\\s*square-(\\d+)")]
     private static partial Regex MyRegex();
