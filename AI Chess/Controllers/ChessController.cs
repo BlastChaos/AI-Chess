@@ -87,7 +87,7 @@ namespace AI_Chess.Controllers
         public async Task<ActionResult> Train(int nbreIterations)
         {
             var gameInfos = GetGameInfos(); 
-            var input = gameInfos.Select(x =>  ChessBoardOp.GetNeuralInput(x.OriginalPositions,x.NewPositionX,x.NewPositionY,x.OriginalPositionX,x.OriginalPositionY, x.Turn)).ToArray();
+            var input = gameInfos.Select(x => x.GetNeuralInput()).ToArray();
             var output = gameInfos.Select(x => new double[]{x.Point}).ToArray();
             gameInfos.Clear();
             var debut = DateTime.Now;
@@ -137,6 +137,10 @@ namespace AI_Chess.Controllers
                 var isWhite = _neuralConfig.Users.Contains(whiteName, StringComparer.OrdinalIgnoreCase);
                 var isBlackWin =isBlack && board.EndGame.WonSide == PieceColor.Black;
                 var isWhiteWin = isWhite && board.EndGame.WonSide == PieceColor.White;
+
+                var playerElo = isBlack ? board.Headers["BlackElo"] : board.Headers["WhiteElo"];
+                var opponentElo = isBlack ? board.Headers["WhiteElo"] : board.Headers["BlackElo"];
+
                 if(isBlackWin || isWhiteWin){
                     point = _neuralConfig.GoodMatchPoint;
                 } else {
@@ -169,8 +173,9 @@ namespace AI_Chess.Controllers
                         NewPositionX = moveMatch.NewPosition.X,
                         NewPositionY = moveMatch.NewPosition.Y,
                         Point = pointInfo,
-                        Turn = board.Turn.Value
-                        //Se référer à PieceColor.Black OU white
+                        Turn = board.Turn.Value,
+                        OpponentElo = double.Parse(opponentElo),
+                        PlayerElo = double.Parse(playerElo)
                     });
 
                     board.Next();

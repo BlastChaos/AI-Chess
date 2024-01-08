@@ -7,6 +7,7 @@ public class NeuralConfig
     public int NumberData { get; set; }
     public Point GoodMatchPoint { get; set; }
     public Point BadMatchPoint { get; set; }
+    public int NumberOfInputNeurons { get; set; }
     public double LearningRate {get; set;}
     public int BackgroundIterations {get; set;}
     public string BrainFileName {get; set;}

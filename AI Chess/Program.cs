@@ -63,11 +63,11 @@ builder.Services.AddScoped<NeuralNetwork>(provider =>
         }
     };
 
-    var nbInputNodes = 69; //8*8 + Original postion (2) => New Position(2) + turn(1)
     var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
     var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
     var learningRate = neuralConfig.Value.LearningRate;
     var chessDbContext = provider.GetRequiredService<ChessDbContext>();
+    var nbInputNodes = neuralConfig.Value.NumberOfInputNeurons;
     return new NeuralNetwork(nbInputNodes, learningRate, nodes.ToArray(), chessDbContext, logger);
 });
 
