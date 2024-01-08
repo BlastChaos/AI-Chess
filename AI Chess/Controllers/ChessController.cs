@@ -127,8 +127,22 @@ namespace AI_Chess.Controllers
                     _logger.LogWarning("{filePath} will not be used", filePath);
                     continue;
                 }
-                
 
+
+                Point point;
+                board.Headers.TryGetValue("Black", out var blackName);
+                board.Headers.TryGetValue("White", out var whiteName);
+                board.Headers.TryGetValue("Result", out var result);
+                var isBlack  = _neuralConfig.Users.Contains(blackName, StringComparer.OrdinalIgnoreCase);
+                var isWhite = _neuralConfig.Users.Contains(whiteName, StringComparer.OrdinalIgnoreCase);
+                var isBlackWin =isBlack && board.EndGame.WonSide == PieceColor.Black;
+                var isWhiteWin = isWhite && board.EndGame.WonSide == PieceColor.White;
+                if(isBlackWin || isWhiteWin){
+                    point = _neuralConfig.GoodMatchPoint;
+                } else {
+                    point = _neuralConfig.BadMatchPoint;
+                }
+                
                 board.MoveIndex = -1;
                 foreach (Move moveMatch in board.ExecutedMoves)
                 {
@@ -142,32 +156,22 @@ namespace AI_Chess.Controllers
                     //     Console.WriteLine();
                     // }
                     //Good move
+                    double pointInfo = 0;
+                    if(board.Turn == PieceColor.Black && isBlack || board.Turn == PieceColor.White && isWhite){
+                        pointInfo = point.Player;
+                    } else {
+                        pointInfo = point.Opponent;
+                    }
                     turnInfos.Add(new TurnInfo(){
                         OriginalPositions = pieces,
                         OriginalPositionX = moveMatch.OriginalPosition.X,
                         OriginalPositionY = moveMatch.OriginalPosition.Y,
                         NewPositionX = moveMatch.NewPosition.X,
                         NewPositionY = moveMatch.NewPosition.Y,
-                        Point = _neuralConfig.GoodMovePoint,
+                        Point = pointInfo,
                         Turn = board.Turn.Value
                         //Se référer à PieceColor.Black OU white
                     });
-
-                    foreach(var badMove in board.Moves()){
-                        if(badMove.ToString() == moveMatch.ToString()) {
-                            continue;
-                        }
-                        turnInfos.Add(new TurnInfo(){ 
-                            OriginalPositions = pieces,
-                            OriginalPositionX = badMove.OriginalPosition.X,
-                            OriginalPositionY = badMove.OriginalPosition.Y,
-                            NewPositionX = badMove.NewPosition.X,
-                            NewPositionY = badMove.NewPosition.Y,
-                            Point = _neuralConfig.BadMovePoint,
-                            Turn = board.Turn.Value
-                            //Se référer à PieceColor.Black OU white
-                        });
-                    }
 
                     board.Next();
                     gameCount++;
