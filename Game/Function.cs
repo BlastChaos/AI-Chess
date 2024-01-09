@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using AI_Chess;
 using Chess;
 using Game;
 using OpenQA.Selenium;
@@ -22,7 +23,7 @@ public partial class Function {
 
     public static Move GetOurMove(GameConfig  gameConfig){
         var allPossibleMoves = gameConfig.ChessBoard.Moves();
-        var move = GetMove(allPossibleMoves);
+        var move = GetMove(allPossibleMoves, gameConfig);
 
         var pieceWebElement = gameConfig.GameWebElement.FindElement(By.ClassName($"square-{1+move.OriginalPosition.X}{1+move.OriginalPosition.Y}"));
         
@@ -36,8 +37,30 @@ public partial class Function {
         return move;
     }
 
-    private static Move GetMove(Move[] moves){
-        return moves[0];
+    private static Move GetMove(Move[] moves, GameConfig gameConfig){
+        var pieces = ChessBoardOp.TransformChessBoard(gameConfig.ChessBoard);
+
+        var input = moves.Select(move => new TurnInfo(){
+            Turn = gameConfig.ChessBoard.Turn.Value,
+            OriginalPositions = pieces,
+            OpponentElo = gameConfig.OppenentElo,
+            NewPositionX = move.NewPosition.X,
+            NewPositionY = move.NewPosition.Y,
+            OriginalPositionX = move.OriginalPosition.X,
+            OriginalPositionY = move.OriginalPosition.Y
+        }.GetNeuralInput()).ToArray();
+
+        var output = gameConfig.NeuralNetwork.Predict(input).GetAwaiter().GetResult();
+        Move move = moves[0];
+        double bestMove = output[0][0];
+        for(var i = 0; i < output.Length; i++) {
+            if(output[i][0] > bestMove) {
+                Console.WriteLine("New best move: " + moves[i] + " with " + output[i][0]);
+                move = moves[i];
+                bestMove = output[i][0];
+            }
+        }
+        return move;
     }
 
 

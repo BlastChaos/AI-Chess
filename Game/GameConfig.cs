@@ -1,3 +1,4 @@
+using AI_Chess;
 using Chess;
 using OpenQA.Selenium;
 namespace Game {
@@ -8,6 +9,8 @@ namespace Game {
         public required PieceColor Color {get; set;}
         public required string Username {get; set;}
         public required string Oppenentname {get; set;}
+        public required double OppenentElo {get; set;}
+        public required NeuralNetwork NeuralNetwork {get; set;}
 
         public bool IsMyTurn {get {
             if(Username == null || Oppenentname == null || Color == null) {
