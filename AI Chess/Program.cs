@@ -39,22 +39,27 @@ builder.Services.AddScoped<NeuralNetwork>(provider =>
         new Node()
         {
             Activation = new LeakyRelu(),
-            NbHiddenNode = 50
+            NbHiddenNode = 60
         },
         new Node()
         {
             Activation = new Sigmoid(),
-            NbHiddenNode = 25
+            NbHiddenNode = 60
         },
         new Node()
         {
             Activation = new LeakyRelu(),
-            NbHiddenNode = 50
+            NbHiddenNode = 60
         },
         new Node()
         {
             Activation = new LeakyRelu(),
-            NbHiddenNode = 50
+            NbHiddenNode = 60
+        },
+        new Node()
+        {
+            Activation = new Sigmoid(),
+            NbHiddenNode = 60
         },
         new Node()
         {

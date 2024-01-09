@@ -138,7 +138,6 @@ namespace AI_Chess.Controllers
                 var isBlackWin =isBlack && board.EndGame.WonSide == PieceColor.Black;
                 var isWhiteWin = isWhite && board.EndGame.WonSide == PieceColor.White;
 
-                var playerElo = isBlack ? board.Headers["BlackElo"] : board.Headers["WhiteElo"];
                 var opponentElo = isBlack ? board.Headers["WhiteElo"] : board.Headers["BlackElo"];
 
                 if(isBlackWin || isWhiteWin){
@@ -175,7 +174,6 @@ namespace AI_Chess.Controllers
                         Point = pointInfo,
                         Turn = board.Turn.Value,
                         OpponentElo = double.Parse(opponentElo),
-                        PlayerElo = double.Parse(playerElo)
                     });
 
                     board.Next();
