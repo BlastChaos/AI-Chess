@@ -85,14 +85,14 @@ while (true)
         var gameWebElement = driver.FindElement(By.TagName("wc-chess-board")) 
                                 ?? throw new Exception("Impossible to find the chess board");
 
-        var playerTopElement = driver.FindElement(By.ClassName("player-top"))
+        var playerTopElement = driver.FindElement(By.Id("player-top"))
                                 ?? throw new Exception("Impossible to find the player top element");
 
-        var opponentEloText = playerTopElement.FindElement(By.ClassName("user-tagline-rating user-tagline-white")).Text;
+        var opponentEloText = playerTopElement.FindElement(By.ClassName("user-tagline-rating")).Text;
 
         var match = MyRegex1().Match(opponentEloText);
         if(!match.Success) throw new Exception("Impossible to find the opponent elo");
-        var opponentElo = double.Parse(match.Value);
+        var opponentElo = double.Parse(match.Groups[1].Value);
         
 
         Console.WriteLine("Chess board found");
