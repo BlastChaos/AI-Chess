@@ -1,31 +1,66 @@
-﻿namespace AI_Chess;
+﻿using Chess;
+
+namespace AI_Chess;
 
 public class TurnInfo
 {
     //Se référer à PieceColor.Black OU white
-    public required int Turn{ get; set; }
-    public required short OriginalPositionX{ get; set; }
-    public required short OriginalPositionY{ get; set; }
-    public required short NewPositionX{ get; set; }
-    public required short NewPositionY{ get; set; }
-    public required int[][] OriginalPositions { get; set; }
+    public required PieceColor Turn{ get; set; }
+    public required Move[] PreviousMoves { get; set; }
+    public required Move Move{ get; set; }
+    public required double[][] OriginalPositions { get; set; }
     public double Point {get ; set ;}
     public  required double OpponentElo {get; set;}
 
     public double[] GetNeuralInput()
     {
-        double[] result = new double[OriginalPositions.Length * OriginalPositions[0].Length+6];
+        double[] result = new double[OriginalPositions.Length * OriginalPositions[0].Length+6+5*4];
+
+        //Chessboard
         for(int i = 0; i < OriginalPositions.Length; i++){
             for(int j = 0; j< OriginalPositions[0].Length; j++) {
                 result[i*OriginalPositions[0].Length+j] = OriginalPositions[i][j];
             }
         }
+
+        // Add the last 5 moves
+        for (int i = 0; i < 5; i++)
+        {
+            if (i < PreviousMoves.Length)
+            {
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4] = NormalizePosition(PreviousMoves[PreviousMoves.Length - i - 1].OriginalPosition.X);
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 1] = NormalizePosition(PreviousMoves[PreviousMoves.Length - i - 1].OriginalPosition.Y);
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 2] = NormalizePosition(PreviousMoves[PreviousMoves.Length - i - 1].NewPosition.X);
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 3] = NormalizePosition(PreviousMoves[PreviousMoves.Length - i - 1].NewPosition.Y);
+            }
+            else
+            {
+                // Fill with default values
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4] = -1;
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 1] = -1;
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 2] = -1;
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 3] = -1;
+            }
+        }
+
+        result[^1] = Turn.Value - 1;
+        result[^2] = NormalizePosition(Move.NewPosition.Y);
+        result[^3] = NormalizePosition(Move.NewPosition.X);
+        result[^4] = NormalizePosition(Move.OriginalPosition.Y);
+        result[^5] = NormalizePosition(Move.OriginalPosition.X);
         result[^6] = OpponentElo;
-        result[^4] = OriginalPositionY;
-        result[^3] = NewPositionX;
-        result[^2] = NewPositionY;
-        result[^1] = Turn;
         return result;
+    }
+
+    public static int GetNumberOfInputNodes()
+    {
+        return 90;
+    }
+
+    private static double NormalizePosition(int position)
+    {
+        return position / 8.0;
+
     }
 }
 

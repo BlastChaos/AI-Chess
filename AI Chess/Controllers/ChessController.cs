@@ -147,9 +147,10 @@ namespace AI_Chess.Controllers
                 }
                 
                 board.MoveIndex = -1;
+                List<Move> executedMoves = new();
                 foreach (Move moveMatch in board.ExecutedMoves)
                 {
-                    int[][] pieces = ChessBoardOp.TransformChessBoard(board);
+                    var pieces = ChessBoardOp.TransformChessBoard(board);
                     // for (int i = 0; i < pieces.Length; i++)
                     // {
                     //     for (int j = 0; j < pieces[i].Length; j++)
@@ -167,16 +168,15 @@ namespace AI_Chess.Controllers
                     }
                     turnInfos.Add(new TurnInfo(){
                         OriginalPositions = pieces,
-                        OriginalPositionX = moveMatch.OriginalPosition.X,
-                        OriginalPositionY = moveMatch.OriginalPosition.Y,
-                        NewPositionX = moveMatch.NewPosition.X,
-                        NewPositionY = moveMatch.NewPosition.Y,
+                        Move = moveMatch,
+                        PreviousMoves = executedMoves.ToArray(),
                         Point = pointInfo,
-                        Turn = board.Turn.Value,
+                        Turn = board.Turn,
                         OpponentElo = double.Parse(opponentElo),
                     });
 
                     board.Next();
+                    executedMoves.Add(moveMatch);
                     gameCount++;
                     if(gameCount == _neuralConfig.NumberData){
                         break;

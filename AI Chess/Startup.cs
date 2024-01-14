@@ -77,7 +77,7 @@ public class Startup
         var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
         var learningRate = neuralConfig.Value.LearningRate;
         var chessDbContext = provider.GetRequiredService<ChessDbContext>();
-        var nbInputNodes = neuralConfig.Value.NumberOfInputNeurons;
+        var nbInputNodes = TurnInfo.GetNumberOfInputNodes();
         return new NeuralNetwork(nbInputNodes, learningRate, nodes.ToArray(), chessDbContext, logger);
         });
 
