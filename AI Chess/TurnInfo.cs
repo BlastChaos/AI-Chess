@@ -4,7 +4,6 @@ namespace AI_Chess;
 
 public class TurnInfo
 {
-    //Se référer à PieceColor.Black OU white
     public required PieceColor Turn{ get; set; }
     public required Move[] PreviousMoves { get; set; }
     public required Move Move{ get; set; }
@@ -14,7 +13,7 @@ public class TurnInfo
 
     public double[] GetNeuralInput()
     {
-        double[] result = new double[OriginalPositions.Length * OriginalPositions[0].Length+6+5*4];
+        double[] result = new double[GetNumberOfInputNodes()];
 
         //Chessboard
         for(int i = 0; i < OriginalPositions.Length; i++){
