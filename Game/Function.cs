@@ -41,13 +41,11 @@ public partial class Function {
         var pieces = ChessBoardOp.TransformChessBoard(gameConfig.ChessBoard);
 
         var input = moves.Select(move => new TurnInfo(){
-            Turn = gameConfig.ChessBoard.Turn.Value,
+            Turn = gameConfig.ChessBoard.Turn,
             OriginalPositions = pieces,
             OpponentElo = gameConfig.OppenentElo,
-            NewPositionX = move.NewPosition.X,
-            NewPositionY = move.NewPosition.Y,
-            OriginalPositionX = move.OriginalPosition.X,
-            OriginalPositionY = move.OriginalPosition.Y
+            PreviousMoves = gameConfig.ChessBoard.ExecutedMoves.ToArray(),
+            Move = move
         }.GetNeuralInput()).ToArray();
 
         var output = gameConfig.NeuralNetwork.Predict(input).GetAwaiter().GetResult();

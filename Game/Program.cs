@@ -1,69 +1,17 @@
 ﻿using System.Text.RegularExpressions;
 using AI_Chess;
-using AI_Chess.Activation;
-using AI_Chess.Context;
 using Chess;
 using Game;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using ProgramAi = ProgramAI.Program;
 // See https://aka.ms/new-console-template for more information
 
+var emptyString = Array.Empty<string>();
+Environment.CurrentDirectory = "../AI Chess/";
+var app = ProgramAi.BuildWebHost(emptyString);
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Services.AddDbContext<ChessDbContext>(options => options.UseSqlite("Data Source=../AI Chess/neuralNetwork.json"));
-builder.Services.AddScoped<NeuralNetwork>(provider =>
-{
-    List<Node> nodes = new()
-    {
-        new Node()
-        {
-            Activation = new LeakyRelu(),
-            NbHiddenNode = 69, // number of cases on the chessboard
-        },
-        new Node()
-        {
-            Activation = new LeakyRelu(),
-            NbHiddenNode = 60
-        },
-        new Node()
-        {
-            Activation = new Sigmoid(),
-            NbHiddenNode = 60
-        },
-        new Node()
-        {
-            Activation = new LeakyRelu(),
-            NbHiddenNode = 60
-        },
-        new Node()
-        {
-            Activation = new LeakyRelu(),
-            NbHiddenNode = 60
-        },
-        new Node()
-        {
-            Activation = new Sigmoid(),
-            NbHiddenNode = 60
-        },
-        new Node()
-        {
-            Activation = new Sigmoid(),
-            NbHiddenNode = 1
-        }
-    };
-
-    var nbInputNodes = 69; //8*8 + Original postion (2) => New Position(2) + turn(1)
-    var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
-    var chessDbContext = provider.GetRequiredService<ChessDbContext>();
-    return new NeuralNetwork(nbInputNodes, 0, nodes.ToArray(), chessDbContext, logger);
-});
-var app = builder.Build();
 var neuralNetwork = app.Services.GetRequiredService<NeuralNetwork>();
 
 
