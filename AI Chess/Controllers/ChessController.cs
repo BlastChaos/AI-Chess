@@ -96,23 +96,7 @@ namespace AI_Chess.Controllers
             _logger.LogInformation("Ai trained with {nbreIterations} iterations in {seconds} seconds. Last loss: {lastLoss}", nbreIterations, (fin-debut).TotalSeconds, loss.Last());
             return this.Ok($"Ai trained with {nbreIterations} iterations in {(fin-debut).TotalSeconds} seconds. Last loss: {loss.Last()}");
         }
-        /*
-        [HttpGet("Save")]
-        public ActionResult Save()
-        {
-            _neuralNetwork.Save(_neuralConfig.BrainFileName);
-            _logger.LogInformation("Ai saved");
-            return this.Ok($"Ai saved");
-        }
 
-        [HttpGet("Load")]
-        public ActionResult Load()
-        {
-            _neuralNetwork.Load(_neuralConfig.BrainFileName);
-            _logger.LogInformation("Ai loaded");
-            return this.Ok($"Ai loaded");
-        }
-    */
         [HttpGet("GetGameInfos")]
         public List<TurnInfo> GetGameInfos()
         {
@@ -128,28 +112,22 @@ namespace AI_Chess.Controllers
                     continue;
                 }
 
-
-                Point point;
                 board.Headers.TryGetValue("Black", out var blackName);
-                board.Headers.TryGetValue("White", out var whiteName);
-                board.Headers.TryGetValue("Result", out var result);
-                var isBlack  = _neuralConfig.Users.Contains(blackName, StringComparer.OrdinalIgnoreCase);
-                var isWhite = _neuralConfig.Users.Contains(whiteName, StringComparer.OrdinalIgnoreCase);
-                var isBlackWin =isBlack && board.EndGame.WonSide == PieceColor.Black;
-                var isWhiteWin = isWhite && board.EndGame.WonSide == PieceColor.White;
+                var playerBlack  = _neuralConfig.Users.Contains(blackName, StringComparer.OrdinalIgnoreCase);
 
-                var opponentElo = isBlack ? board.Headers["WhiteElo"] : board.Headers["BlackElo"];
+                var opponentElo = playerBlack ? board.Headers["WhiteElo"] : board.Headers["BlackElo"];
+                var playerTurn = playerBlack ? PieceColor.Black : PieceColor.White;
 
-                if(isBlackWin || isWhiteWin){
-                    point = _neuralConfig.GoodMatchPoint;
-                } else {
-                    point = _neuralConfig.BadMatchPoint;
-                }
-                
                 board.MoveIndex = -1;
-                List<Move> executedMoves = new();
+                var fenBoard = board.ToFen();
+                var newBoard = ChessBoard.LoadFromFen(fenBoard);
+
                 foreach (Move moveMatch in board.ExecutedMoves)
                 {
+                    if(playerTurn != board.Turn){
+                        newBoard.Move(moveMatch);
+                        continue;
+                    }
                     var pieces = ChessBoardOp.TransformChessBoard(board);
                     // for (int i = 0; i < pieces.Length; i++)
                     // {
@@ -159,30 +137,31 @@ namespace AI_Chess.Controllers
                     //     }
                     //     Console.WriteLine();
                     // }
-                    //Good move
-                    double pointInfo = 0;
-                    if(board.Turn == PieceColor.Black && isBlack || board.Turn == PieceColor.White && isWhite){
-                        pointInfo = point.Player;
-                    } else {
-                        pointInfo = point.Opponent;
+                    var moves = newBoard.Moves();
+                    for(int i = 0; i < Math.Min(moves.Length, 30); i++){
+                        var possibleMove = moves[i];
+                        var isPlayerMove = moveMatch.ToString() == possibleMove.ToString();
+                        var point = CalculatePoint.CalculatePointOfBoard(newBoard, possibleMove, isPlayerMove);
+                        turnInfos.Add(new TurnInfo(){
+                            OriginalPositions = pieces,
+                            Move = moveMatch,
+                            PreviousMoves = newBoard.ExecutedMoves.ToArray(),
+                            Point = point,
+                            Turn = board.Turn,
+                            OpponentElo = double.Parse(opponentElo),
+                        });
+                        gameCount++;
+                        
                     }
-                    turnInfos.Add(new TurnInfo(){
-                        OriginalPositions = pieces,
-                        Move = moveMatch,
-                        PreviousMoves = executedMoves.ToArray(),
-                        Point = pointInfo,
-                        Turn = board.Turn,
-                        OpponentElo = double.Parse(opponentElo),
-                    });
 
-                    board.Next();
-                    executedMoves.Add(moveMatch);
-                    gameCount++;
-                    if(gameCount == _neuralConfig.NumberData){
+                    newBoard.Move(moveMatch);
+
+
+                    if(gameCount >= _neuralConfig.NumberData){
                         break;
                     }
                 }
-                if(gameCount == _neuralConfig.NumberData){
+                if(gameCount >= _neuralConfig.NumberData){
                     break;
                 }
             }

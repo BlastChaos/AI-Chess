@@ -1,4 +1,5 @@
-﻿using AI_Chess.Context;
+﻿using System.Runtime.CompilerServices;
+using AI_Chess.Context;
 using AI_Chess.Model;
 using Microsoft.EntityFrameworkCore;
 
@@ -154,8 +155,10 @@ namespace AI_Chess
                 var bContent = new BContent(){Position = i, Value = b};
                 bContentList.Add(bContent);
             }
-            await _chessDbContext.WContents.BulkInsertAsync(wContentList);
-            await _chessDbContext.BContents.BulkInsertAsync(bContentList);
+            await _chessDbContext.WContents.AddRangeAsync(wContentList);
+            await _chessDbContext.BContents.AddRangeAsync(bContentList);
+            await _chessDbContext.SaveChangesAsync();
+            _chessDbContext.ChangeTracker.Clear();
         }
 
         private async Task UpdateDatabase(int position, double[][] w, double[] b)
@@ -166,25 +169,37 @@ namespace AI_Chess
 
         private async Task UpdateBContent(int position, double[] content)
         {
-            var newBContent = new BContent(){Position = position, Value = content};
-            await _chessDbContext.BContents.SingleMergeAsync(newBContent, options => options.ColumnPrimaryKeyExpression = c => c.Position);
+            await _chessDbContext.BContents
+                .Where(c=> c.Position == position)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(b => b.Value, content));
         }
 
 
         private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet) where T : Content, new()
         {
-            var newContent = new T(){Position = position, Value = content};
-            await dbSet.SingleMergeAsync(newContent, options => options.ColumnPrimaryKeyExpression = c => c.Position);
+            var value = await dbSet.AsNoTracking().Where(c => c.Position == position).Select(c => c.Value).FirstOrDefaultAsync();
+
+            if (value == null)
+            {
+                var newContent = new T(){Position = position, Value = content};
+                await dbSet.AddAsync(newContent);
+                await _chessDbContext.SaveChangesAsync();
+                _chessDbContext.ChangeTracker.Clear();
+            } else {
+                await dbSet
+                    .Where(c=> c.Position == position)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(info =>info.Value, content ));
+            }
         }
         
         private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
         {
-            return await dbSet.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).SingleAsync();
+            return await dbSet.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).FirstAsync();
         }
 
         private async Task<double[]> GetBContents(int postition)
         {
-            return await _chessDbContext.BContents.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).SingleAsync();
+            return await _chessDbContext.BContents.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).FirstAsync();
         }
     }
 }
