@@ -22,6 +22,7 @@ public class TurnInfo
             }
         }
 
+
         // Add the last 5 moves
         for (int i = 0; i < 5; i++)
         {
@@ -35,10 +36,10 @@ public class TurnInfo
             else
             {
                 // Fill with default values
-                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4] = -1;
-                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 1] = -1;
-                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 2] = -1;
-                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 3] = -1;
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4] = 0;
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 1] = 0;
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 2] = 0;
+                result[OriginalPositions.Length * OriginalPositions[0].Length + i * 4 + 3] = 0;
             }
         }
 
@@ -47,7 +48,7 @@ public class TurnInfo
         result[^3] = NormalizePosition(Move.NewPosition.X);
         result[^4] = NormalizePosition(Move.OriginalPosition.Y);
         result[^5] = NormalizePosition(Move.OriginalPosition.X);
-        result[^6] = OpponentElo;
+        result[^6] = OpponentElo/2882.0;//Max elo in the world
         return result;
     }
 

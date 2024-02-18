@@ -13,30 +13,13 @@ namespace AI_Chess
                 for(short j = 0; j< 8; j++) {
 
                     if(board[i,j] != null){
-                        var pieceValue = board[i,j].Color.Value == PieceColor.Black.Value ? -board[i,j].Type.Value : board[i,j].Type.Value;
-                        pieces[i][j] = pieceValue/6.0;
+                        var pieceValue = board[i,j].Color.Value == PieceColor.Black.Value ? (-board[i,j].Type.Value-1) : (board[i,j].Type.Value+1);
+                        pieces[i][j] = 0.5-pieceValue/7.0*0.45;
                     }
                     
                 }
             }
             return pieces;
-        }
-
-        public static int[][] ConvertToElement(int[][] board){
-            int rowCount = board.Length;
-            int colCount = board[0].Length;
-            int[][] result = new int[colCount][];
-
-            for (int i = 0; i < colCount; i++)
-            {
-                result[i] = new int[rowCount];
-                for (int j = 0; j < rowCount; j++)
-                {
-                    result[i][j] = board[rowCount - j - 1][i];
-                }
-            }
-
-            return result;
         }
     }
 }
