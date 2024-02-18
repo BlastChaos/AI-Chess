@@ -39,27 +39,27 @@ public class Startup
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 80, // number of cases on the chessboard
+                NbHiddenNode = 70, // number of cases on the chessboard
             },
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 80
+                NbHiddenNode = 70
             },
             new Node()
             {
                 Activation = new Sigmoid(),
-                NbHiddenNode = 80
+                NbHiddenNode = 70
             },
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 80
+                NbHiddenNode = 69
             },
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 80
+                NbHiddenNode = 69
             },
             new Node()
             {
