@@ -24,7 +24,10 @@ public class CalculatePoint
         board.Move(move);
 
         foreach(var possibleMove in board.Moves()) {
-            if(possibleMove.IsMate) worstScenario = 1;
+            if(possibleMove.IsMate) {
+                worstScenario = 1;
+                break;
+            }
             if(possibleMove.CapturedPiece != null){
                 if(possibleMove.CapturedPiece.Type.Value == PieceType.Pawn.Value) worstScenario = Math.Max(worstScenario, 0.1);
                 else if(possibleMove.CapturedPiece.Type.Value == PieceType.Knight.Value) worstScenario = Math.Max(worstScenario, 0.3);
