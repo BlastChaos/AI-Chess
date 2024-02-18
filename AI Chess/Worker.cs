@@ -36,7 +36,7 @@ public class Worker : BackgroundService
                 }
                 firstTime = false;
             }
-            await chessController.Train(_neuralConfig.BackgroundIterations);
+            await chessController.Train(_neuralConfig.BackgroundIterations, stoppingToken);
             _logger.LogInformation("Training end");
             SendEmail();
             await Task.Delay(TimeSpan.FromHours(2.5), stoppingToken);

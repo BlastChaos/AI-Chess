@@ -51,35 +51,35 @@ namespace AI_Chess
             return result;
         }
 
-        public async Task<double[][]> Forward(double[][] x){
+        public async Task<double[][]> Forward(double[][] x, CancellationToken stoppingToken){
             double[][] dotProduct;
 
-            await UpdateContent(0, x, _chessDbContext.AContents);
+            await UpdateContent(0, x, _chessDbContext.AContents, stoppingToken);
 
             double[][] a = x;
 
             for (int i = 0; i < this.Nodes.Length; i++){
-                var w = await GetContents(i, _chessDbContext.WContents);
-                var b = await GetBContents(i);
+                var w = await GetContents(i, _chessDbContext.WContents, stoppingToken);
+                var b = await GetBContents(i, stoppingToken);
                 dotProduct = MatrixOperation.DotProduct(a, w);
                 var z = MatrixOperation.Add(dotProduct, b);
                 a = this.Nodes[i].Activation!.Activation(z);
-                await UpdateContent(i, z, _chessDbContext.ZContents);
-                await UpdateContent(i+1, a, _chessDbContext.AContents);
+                await UpdateContent(i, z, _chessDbContext.ZContents, stoppingToken);
+                await UpdateContent(i+1, a, _chessDbContext.AContents, stoppingToken);
             }
             return a;
         }
 
-        public async Task Backward(double[][] y){
+        public async Task Backward(double[][] y, CancellationToken stoppingToken){
             double[][][] dz = new double[this.Nodes.Length][][];
             double[][] dA;
             
             for (int i = this.Nodes.Length-1; i >=0; i--){
-                var a = await GetContents(i, _chessDbContext.AContents);
-                var z = await GetContents(i, _chessDbContext.ZContents);
+                var a = await GetContents(i, _chessDbContext.AContents, stoppingToken);
+                var z = await GetContents(i, _chessDbContext.ZContents, stoppingToken);
 
                 if(i == this.Nodes.Length-1){
-                    double[][] aAfter = await GetContents(i+1, _chessDbContext.AContents);
+                    double[][] aAfter = await GetContents(i+1, _chessDbContext.AContents, stoppingToken);
                     int aLength = aAfter.Length;
                     dA = new double[aLength][];
                     for (int l = 0; l < aLength; l++)
@@ -92,41 +92,41 @@ namespace AI_Chess
                     }
                     dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(z, y));
                 } else {
-                    var wAfter = await GetContents(i + 1, _chessDbContext.WContents);
+                    var wAfter = await GetContents(i + 1, _chessDbContext.WContents, stoppingToken);
                     dA = MatrixOperation.DotProduct(dz[i+1], MatrixOperation.Transpose(wAfter!));
                     dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(z, y));
                 }
                 var dw = MatrixOperation.DotProduct(MatrixOperation.Transpose(a), dz[i]);
                 var db = MatrixOperation.SumColumn(dz[i]);
 
-                var w = await GetContents(i, _chessDbContext.WContents);
-                var b = await GetBContents(i);
+                var w = await GetContents(i, _chessDbContext.WContents, stoppingToken);
+                var b = await GetBContents(i, stoppingToken);
                 var newW = MatrixOperation.Diff(w, MatrixOperation.DotConstant(dw, this.LearningRate));
                 var fakeB = new double[][] {b};
                 var fakeDB = new double[][] {db};
                 var newB = MatrixOperation.Diff(fakeB, MatrixOperation.DotConstant(fakeDB, this.LearningRate))[0];
-                await UpdateDatabase(i, newW, newB);
+                await UpdateDatabase(i, newW, newB, stoppingToken);
             }
         }
 
-        public async Task<List<double>> Train(double[][] input, double[][] output, int nbreIterations){
+        public async Task<List<double>> Train(double[][] input, double[][] output, int nbreIterations, CancellationToken stoppingToken){
             if(input[0].Length != this.NbInputNodes) throw new Exception("Invalid input");
             if(output[0].Length != this.Nodes.Last().NbHiddenNode) throw new Exception("Invalid output");
 
-            var wContentLength = await _chessDbContext.WContents.CountAsync();
+            var wContentLength = await _chessDbContext.WContents.CountAsync(stoppingToken);
 
             if(wContentLength == 0)
             {
                 _logger.LogInformation("Initialize database");
-                await InitializeDatabase();
+                await InitializeDatabase(stoppingToken);
             }
             _logger.LogInformation("Training start with {iterations} iterations", nbreIterations);
             for (int i = 1; i <= nbreIterations; i++){
                 _logger.LogInformation("Iteration {iteration}, current Loss: {loss}", i, this.Loss.LastOrDefault());
-                var y_pred = await this.Forward(input);
+                var y_pred = await this.Forward(input, stoppingToken);
                 var loss = this.CostFunction(output, y_pred);
                 this.Loss.Add(loss);
-                await this.Backward(output);
+                await this.Backward(output, stoppingToken);
             }
             _logger.LogInformation("Training end");
             await _chessDbContext.BContents.AsNoTracking().ExecuteDeleteAsync();
@@ -134,12 +134,12 @@ namespace AI_Chess
             return this.Loss;
         }
 
-        public Task<double[][]> Predict(double[][] x){
-            return Forward(x);
+        public Task<double[][]> Predict(double[][] x, CancellationToken stoppingToken){
+            return Forward(x, stoppingToken);
         }
 
 
-        private async Task InitializeDatabase()
+        private async Task InitializeDatabase(CancellationToken stoppingToken)
         {
             var wContentList = new HashSet<WContent>();
             var bContentList = new HashSet<BContent>();
@@ -155,51 +155,51 @@ namespace AI_Chess
                 var bContent = new BContent(){Position = i, Value = b};
                 bContentList.Add(bContent);
             }
-            await _chessDbContext.WContents.AddRangeAsync(wContentList);
-            await _chessDbContext.BContents.AddRangeAsync(bContentList);
-            await _chessDbContext.SaveChangesAsync();
+            await _chessDbContext.WContents.AddRangeAsync(wContentList, stoppingToken);
+            await _chessDbContext.BContents.AddRangeAsync(bContentList, stoppingToken);
+            await _chessDbContext.SaveChangesAsync(stoppingToken);
             _chessDbContext.ChangeTracker.Clear();
         }
 
-        private async Task UpdateDatabase(int position, double[][] w, double[] b)
+        private async Task UpdateDatabase(int position, double[][] w, double[] b, CancellationToken stoppingToken)
         {
-            await UpdateContent(position, w, _chessDbContext.WContents);
-            await UpdateBContent(position, b);
+            await UpdateContent(position, w, _chessDbContext.WContents, stoppingToken);
+            await UpdateBContent(position, b, stoppingToken);
         }
 
-        private async Task UpdateBContent(int position, double[] content)
+        private async Task UpdateBContent(int position, double[] content, CancellationToken stoppingToken)
         {
             await _chessDbContext.BContents
                 .Where(c=> c.Position == position)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(b => b.Value, content));
+                .ExecuteUpdateAsync(setters => setters.SetProperty(b => b.Value, content), stoppingToken);
         }
 
 
-        private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet) where T : Content, new()
+        private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet, CancellationToken stoppingToken) where T : Content, new()
         {
-            var value = await dbSet.AsNoTracking().Where(c => c.Position == position).Select(c => c.Value).FirstOrDefaultAsync();
+            var value = await dbSet.AsNoTracking().Where(c => c.Position == position).Select(c => c.Value).FirstOrDefaultAsync(stoppingToken);
 
             if (value == null)
             {
                 var newContent = new T(){Position = position, Value = content};
-                await dbSet.AddAsync(newContent);
-                await _chessDbContext.SaveChangesAsync();
+                await dbSet.AddAsync(newContent, stoppingToken);
+                await _chessDbContext.SaveChangesAsync(stoppingToken);
                 _chessDbContext.ChangeTracker.Clear();
             } else {
                 await dbSet
                     .Where(c=> c.Position == position)
-                    .ExecuteUpdateAsync(setters => setters.SetProperty(info =>info.Value, content ));
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(info =>info.Value, content ), stoppingToken);
             }
         }
         
-        private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet) where T : Content
+        private static async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet, CancellationToken stoppingToken) where T : Content
         {
-            return await dbSet.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).FirstAsync();
+            return await dbSet.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).FirstAsync(stoppingToken);
         }
 
-        private async Task<double[]> GetBContents(int postition)
+        private async Task<double[]> GetBContents(int postition, CancellationToken stoppingToken)
         {
-            return await _chessDbContext.BContents.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).FirstAsync();
+            return await _chessDbContext.BContents.AsNoTracking().Where(c => c.Position == postition).Select(c => c.Value).FirstAsync(stoppingToken);
         }
     }
 }
