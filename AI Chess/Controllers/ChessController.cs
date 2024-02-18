@@ -118,17 +118,15 @@ namespace AI_Chess.Controllers
                 var opponentElo = playerBlack ? board.Headers["WhiteElo"] : board.Headers["BlackElo"];
                 var playerTurn = playerBlack ? PieceColor.Black : PieceColor.White;
 
-                board.MoveIndex = -1;
-                var fenBoard = board.ToFen();
-                var newBoard = ChessBoard.LoadFromFen(fenBoard);
+                var newBoard = new ChessBoard();
 
                 foreach (Move moveMatch in board.ExecutedMoves)
                 {
-                    if(playerTurn != board.Turn){
+                    if(playerTurn != newBoard.Turn){
                         newBoard.Move(moveMatch);
                         continue;
                     }
-                    var pieces = ChessBoardOp.TransformChessBoard(board);
+                    var pieces = ChessBoardOp.TransformChessBoard(newBoard);
                     // for (int i = 0; i < pieces.Length; i++)
                     // {
                     //     for (int j = 0; j < pieces[i].Length; j++)
@@ -147,7 +145,7 @@ namespace AI_Chess.Controllers
                             Move = moveMatch,
                             PreviousMoves = newBoard.ExecutedMoves.ToArray(),
                             Point = point,
-                            Turn = board.Turn,
+                            Turn = newBoard.Turn,
                             OpponentElo = double.Parse(opponentElo),
                         });
                         gameCount++;
