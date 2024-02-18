@@ -48,7 +48,8 @@ public partial class Function {
             Move = move
         }.GetNeuralInput()).ToArray();
 
-        var output = gameConfig.NeuralNetwork.Predict(input).GetAwaiter().GetResult();
+        var cancellationToken = new CancellationToken();
+        var output = gameConfig.NeuralNetwork.Predict(input, cancellationToken).GetAwaiter().GetResult();
         Move move = moves[0];
         double bestMove = output[0][0];
         for(var i = 0; i < output.Length; i++) {
