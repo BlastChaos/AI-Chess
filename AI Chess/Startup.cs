@@ -38,32 +38,37 @@ public class Startup
         {
             new Node()
             {
-                Activation = new LeakyRelu(),
+                Activation = new Sigmoid(),
                 NbHiddenNode = 70, // number of cases on the chessboard
             },
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 70
+                NbHiddenNode = 80
+            },
+            new Node()
+            {
+                Activation = new LeakyRelu(),
+                NbHiddenNode = 80
             },
             new Node()
             {
                 Activation = new Sigmoid(),
-                NbHiddenNode = 70
-            },
-            new Node()
-            {
-                Activation = new LeakyRelu(),
-                NbHiddenNode = 69
-            },
-            new Node()
-            {
-                Activation = new LeakyRelu(),
                 NbHiddenNode = 69
             },
             new Node()
             {
                 Activation = new Sigmoid(),
+                NbHiddenNode = 69
+            },
+            new Node()
+            {
+                Activation = new LeakyRelu(),
+                NbHiddenNode = 80
+            },
+            new Node()
+            {
+                Activation = new LeakyRelu(),
                 NbHiddenNode = 80
             },
             new Node()

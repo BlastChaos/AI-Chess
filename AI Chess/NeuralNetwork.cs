@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using AI_Chess.Context;
+﻿using AI_Chess.Context;
 using AI_Chess.Model;
 using Microsoft.EntityFrameworkCore;
 
