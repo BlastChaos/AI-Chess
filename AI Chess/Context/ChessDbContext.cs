@@ -27,9 +27,9 @@ namespace AI_Chess.Context
                 c => c.ToArray()));
 
 
-            modelBuilder.Entity<BContent>()
-                .HasIndex(e => e.Position)
-                .IsUnique();
+            // modelBuilder.Entity<BContent>()
+            //     .HasIndex(e => e.Position)
+            //     .IsUnique();
 
             modelBuilder.Entity<WContent>()
                 .Property(e => e.Value)
@@ -41,9 +41,9 @@ namespace AI_Chess.Context
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 c => c.ToArray()));
 
-            modelBuilder.Entity<WContent>()
-                .HasIndex(e => e.Position)
-                .IsUnique();
+            // modelBuilder.Entity<WContent>()
+            //     .HasIndex(e => e.Position)
+            //     .IsUnique();
 
             modelBuilder.Entity<ZContent>()
                 .Property(e => e.Value)
@@ -55,9 +55,9 @@ namespace AI_Chess.Context
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToArray()));
 
-            modelBuilder.Entity<ZContent>()
-                .HasIndex(e => e.Position)
-                .IsUnique();
+            // modelBuilder.Entity<ZContent>()
+            //     .HasIndex(e => e.Position)
+            //     .IsUnique();
 
             modelBuilder.Entity<AContent>()
                 .Property(e => e.Value)
@@ -69,9 +69,9 @@ namespace AI_Chess.Context
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToArray()));
 
-            modelBuilder.Entity<AContent>()
-                .HasIndex(e => e.Position)
-                .IsUnique();
+            // modelBuilder.Entity<AContent>()
+            //     .HasIndex(e => e.Position)
+            //     .IsUnique();
         }
 
         private double[][] ConvertToArrayDouble(string v){

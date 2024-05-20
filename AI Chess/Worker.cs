@@ -28,15 +28,15 @@ public class Worker : BackgroundService
             var service = _serviceProvider.CreateScope().ServiceProvider;
             var chessController = service.GetRequiredService<ChessController>();
             _logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
-            if (firstTime)
-            {
-                if(!Directory.Exists(_neuralConfig.GamesOutputDirectory)){
-                    _logger.LogInformation("Downloading games");
-                    await chessController.DownloadGames();
-                }
-                firstTime = false;
-            }
-            await chessController.Train(_neuralConfig.BackgroundIterations, stoppingToken);
+            // if (firstTime)
+            // {
+            //     if(!Directory.Exists(_neuralConfig.GamesOutputDirectory)){
+            //         _logger.LogInformation("Downloading games");
+            //         await chessController.DownloadGames();
+            //     }
+            //     firstTime = false;
+            // }
+            await chessController.Tournement(_neuralConfig.BackgroundIterations, stoppingToken);
             _logger.LogInformation("Training end");
             SendEmail();
             await Task.Delay(TimeSpan.FromHours(2.5), stoppingToken);

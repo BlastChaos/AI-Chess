@@ -6,6 +6,7 @@ namespace AI_Chess.Model
     {
         [Key]
         public int Id { get; set; }
+        public int NeuralNetworkId { get; set; }
         public int Position { get; set; }
         public double[] Value { get; set; }
     }

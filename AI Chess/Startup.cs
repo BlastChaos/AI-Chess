@@ -12,7 +12,7 @@ public class Startup
     {
         Configuration = configuration;
     }
- 
+
     public IConfiguration Configuration { get; }
     public void ConfigureServices(IServiceCollection services)
     {
@@ -32,9 +32,9 @@ public class Startup
         services.AddHostedService<Worker>();
 
 
-        services.AddScoped<NeuralNetwork>(provider =>
+        services.AddScoped(provider =>
         {
-        List<Node> nodes = new()
+            List<Node> nodes = new()
         {
             new Node()
             {
@@ -78,12 +78,14 @@ public class Startup
             }
         };
 
-        var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
-        var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
-        var learningRate = neuralConfig.Value.LearningRate;
-        var chessDbContext = provider.GetRequiredService<ChessDbContext>();
-        var nbInputNodes = TurnInfo.GetNumberOfInputNodes();
-        return new NeuralNetwork(nbInputNodes, learningRate, nodes.ToArray(), chessDbContext, logger);
+            var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
+            var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
+            var learningRate = neuralConfig.Value.LearningRate;
+            var chessDbContext = provider.GetRequiredService<ChessDbContext>();
+            var nbInputNodes = TurnInfo.GetNumberOfInputNodes();
+            var neuralNetwork1 = new NeuralNetwork(nbInputNodes, learningRate, 1, nodes.ToArray(), chessDbContext, logger);
+            var neuralNetwork2 = new NeuralNetwork(nbInputNodes, learningRate, 2, nodes.ToArray(), chessDbContext, logger);
+            return new NeuralNetwork[2] { neuralNetwork1, neuralNetwork2 };
         });
 
     }
@@ -96,12 +98,12 @@ public class Startup
 
         using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
         {
-        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ChessDbContext>();
-        dbContext.Database.Migrate();
+            var dbContext = serviceScope.ServiceProvider.GetRequiredService<ChessDbContext>();
+            dbContext.Database.Migrate();
         }
 
         app.UseHttpsRedirection();
-        
+
         app.UseRouting();
         app.UseAuthorization();
 

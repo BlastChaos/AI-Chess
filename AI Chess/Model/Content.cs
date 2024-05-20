@@ -6,6 +6,7 @@ namespace AI_Chess.Model
     {
         [Key]
         public int Id { get; set; }
+        public int NeuralNetworkId { get; set; }
         public int Position { get; set; }
 
         public double[][] Value { get; set; }
@@ -21,7 +22,7 @@ namespace AI_Chess.Model
 
         public override int GetHashCode()
         {
-            return Position.GetHashCode() + Value.GetHashCode(); 
+            return Position.GetHashCode() + Value.GetHashCode();
         }
     }
 }

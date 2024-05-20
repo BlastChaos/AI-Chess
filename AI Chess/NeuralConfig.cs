@@ -6,10 +6,11 @@ public class NeuralConfig
     public string GamesOutputDirectory { get; set; }
     public int NumberData { get; set; }
     public Point GoodMatchPoint { get; set; }
+    public int MaxNumberOfMoves { get; set; }
     public Point BadMatchPoint { get; set; }
-    public double LearningRate {get; set;}
-    public int BackgroundIterations {get; set;}
-    public string BrainFileName {get; set;}
+    public double LearningRate { get; set; }
+    public int BackgroundIterations { get; set; }
+    public string BrainFileName { get; set; }
 }
 
 public class Point

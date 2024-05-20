@@ -22,6 +22,9 @@ namespace AI_Chess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("NeuralNetworkId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Position")
                         .HasColumnType("INTEGER");
 
@@ -30,9 +33,6 @@ namespace AI_Chess.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Position")
-                        .IsUnique();
 
                     b.ToTable("AContents");
                 });
@@ -43,6 +43,9 @@ namespace AI_Chess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("NeuralNetworkId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Position")
                         .HasColumnType("INTEGER");
 
@@ -51,9 +54,6 @@ namespace AI_Chess.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Position")
-                        .IsUnique();
 
                     b.ToTable("BContents");
                 });
@@ -64,6 +64,9 @@ namespace AI_Chess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("NeuralNetworkId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Position")
                         .HasColumnType("INTEGER");
 
@@ -72,9 +75,6 @@ namespace AI_Chess.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Position")
-                        .IsUnique();
 
                     b.ToTable("WContents");
                 });
@@ -85,6 +85,9 @@ namespace AI_Chess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("NeuralNetworkId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Position")
                         .HasColumnType("INTEGER");
 
@@ -93,9 +96,6 @@ namespace AI_Chess.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Position")
-                        .IsUnique();
 
                     b.ToTable("ZContents");
                 });
