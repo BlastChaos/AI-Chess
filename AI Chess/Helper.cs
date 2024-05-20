@@ -59,7 +59,7 @@ public partial class Helper
             {
                 var possibleMove = moves[i];
                 var isPlayerMove = moveMatch.ToString() == possibleMove.ToString();
-                var point = CalculatePoint.CalculatePointOfBoard(newBoard, possibleMove, isPlayerMove);
+                var point = CalculatePointOfBoard(newBoard, possibleMove, isPlayerMove);
                 turnInfos.Add(new TurnInfo()
                 {
                     OriginalPositions = pieces,
@@ -74,6 +74,46 @@ public partial class Helper
             newBoard.Move(moveMatch);
         }
         return turnInfos;
+
+    }
+
+    public static double CalculatePointOfBoard(ChessBoard board, Move move, bool isPlayerMove)
+    {
+        if (move.IsMate) return 1;
+
+        var killPoint = 0.0;
+        if (isPlayerMove) return 0.95;
+
+        if (move.CapturedPiece != null)
+            if (move.CapturedPiece.Type.Value == PieceType.Pawn.Value) killPoint = 0.1;
+            else if (move.CapturedPiece.Type.Value == PieceType.Knight.Value) killPoint = 0.3;
+            else if (move.CapturedPiece.Type.Value == PieceType.Bishop.Value) killPoint = 0.3;
+            else if (move.CapturedPiece.Type.Value == PieceType.Rook.Value) killPoint = 0.5;
+            else if (move.CapturedPiece.Type.Value == PieceType.Queen.Value) killPoint = 0.9;
+
+        var worstScenario = 0.0;
+
+        board.Move(move);
+
+        foreach (var possibleMove in board.Moves())
+        {
+            if (possibleMove.IsMate)
+            {
+                worstScenario = 1;
+                break;
+            }
+            if (possibleMove.CapturedPiece != null)
+            {
+                if (possibleMove.CapturedPiece.Type.Value == PieceType.Pawn.Value) worstScenario = Math.Max(worstScenario, 0.1);
+                else if (possibleMove.CapturedPiece.Type.Value == PieceType.Knight.Value) worstScenario = Math.Max(worstScenario, 0.3);
+                else if (possibleMove.CapturedPiece.Type.Value == PieceType.Bishop.Value) worstScenario = Math.Max(worstScenario, 0.3);
+                else if (possibleMove.CapturedPiece.Type.Value == PieceType.Rook.Value) worstScenario = Math.Max(worstScenario, 0.5);
+                else if (possibleMove.CapturedPiece.Type.Value == PieceType.Queen.Value) worstScenario = Math.Max(worstScenario, 0.9);
+            }
+        }
+        board.Cancel();
+
+        return Math.Max(killPoint - worstScenario / 1.5, 0);
 
     }
 

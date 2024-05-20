@@ -147,7 +147,7 @@ namespace AI_Chess
                 await this.Backward(output, stoppingToken);
             }
             _logger.LogInformation("Training end");
-            await _chessDbContext.BContents.AsNoTracking().ExecuteDeleteAsync();
+            //await _chessDbContext.BContents.AsNoTracking().ExecuteDeleteAsync();
             await _chessDbContext.AContents.AsNoTracking().ExecuteDeleteAsync();
             return this.Loss;
         }

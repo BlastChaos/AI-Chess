@@ -148,8 +148,26 @@ namespace AI_Chess.Controllers
                     }
                     if (chessGame.MoveIndex >= _neuralConfig.MaxNumberOfMoves)
                     {
-                        var firstTake = chessGame.CapturedBlack.Length;
-                        var secondTake = chessGame.CapturedWhite.Length;
+                        var firstTake = 0.0;
+                        var secondTake = 0.0;
+
+                        foreach (var piece in chessGame.CapturedBlack)
+                        {
+                            if (piece.Type.Value == PieceType.Pawn.Value) firstTake += 0.1;
+                            else if (piece.Type.Value == PieceType.Knight.Value) firstTake += 0.3;
+                            else if (piece.Type.Value == PieceType.Bishop.Value) firstTake += 0.3;
+                            else if (piece.Type.Value == PieceType.Rook.Value) firstTake += 0.5;
+                            else if (piece.Type.Value == PieceType.Queen.Value) firstTake += 0.9;
+                        }
+
+                        foreach (var piece in chessGame.CapturedWhite)
+                        {
+                            if (piece.Type.Value == PieceType.Pawn.Value) secondTake += 0.1;
+                            else if (piece.Type.Value == PieceType.Knight.Value) secondTake += 0.3;
+                            else if (piece.Type.Value == PieceType.Bishop.Value) secondTake += 0.3;
+                            else if (piece.Type.Value == PieceType.Rook.Value) secondTake += 0.5;
+                            else if (piece.Type.Value == PieceType.Queen.Value) secondTake += 0.9;
+                        }
                         if (firstTake > secondTake)
                         {
                             chessGame.Resign(PieceColor.Black);
