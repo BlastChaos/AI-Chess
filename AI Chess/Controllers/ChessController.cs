@@ -192,12 +192,8 @@ namespace AI_Chess.Controllers
                 }
 
                 _logger.LogInformation("Result: first: {victoryFirst}, second: {victorySecond}, the losser will trains", neuralNetwork1Victory, neuralNetwork2Victory);
-
                 var loser = wonSide == PieceColor.White ? second : first;
-                var turnInfos = Helper.GetTurnInfos(chessGame, 1000, wonSide);
-                var input = turnInfos.Select(x => x.GetNeuralInput()).ToArray();
-                var output = turnInfos.Select(x => new double[] { x.Point }).ToArray();
-                var loss = await loser.Train(input, output, 1, stoppingToken);
+                await Helper.TrainAiWithRandomGame(loser, _neuralConfig, stoppingToken, true);
             }
             return this.Ok($"Ai trained with {fightNumber}");
         }

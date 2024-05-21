@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AI_Chess;
 using Chess;
 
@@ -71,7 +72,7 @@ public partial class Helper
                 });
 
             }
-            newBoard.Move(moveMatch);
+                newBoard.Move(moveMatch);
         }
         return turnInfos;
 
@@ -115,6 +116,51 @@ public partial class Helper
 
         return Math.Max(killPoint - worstScenario / 1.5, 0);
 
+    }
+
+
+    public static List<TurnInfo> PrepareGameInfo(NeuralConfig neuralConfig, bool randomize = false)
+    {
+        List<TurnInfo> turnInfos = new();
+        var directory = Path.Combine(Directory.GetCurrentDirectory(), neuralConfig.GamesOutputDirectory);
+        string[] filePaths = Directory.GetFiles(directory, "*.pgn",
+                                        SearchOption.TopDirectoryOnly);
+        if (randomize)
+        {
+            var random = new Random();
+            filePaths = filePaths.OrderBy(x => random.Next()).ToArray();
+        }
+        int gameCount = 0;
+
+        while (gameCount < neuralConfig.NumberData)
+        {
+            gameCount++;
+            var filePath = filePaths[gameCount];
+            string input = File.ReadAllText(filePath);
+            if (!ChessBoard.TryLoadFromPgn(input, out ChessBoard board))
+            {
+                continue;
+            }
+
+            board.Headers.TryGetValue("Black", out var blackName);
+            var playerBlack = neuralConfig.Users.Contains(blackName, StringComparer.OrdinalIgnoreCase);
+
+            var opponentElo = playerBlack ? board.Headers["WhiteElo"] : board.Headers["BlackElo"];
+            var playerTurn = playerBlack ? PieceColor.Black : PieceColor.White;
+            var gameInfo = GetTurnInfos(board, int.Parse(opponentElo), playerTurn);
+
+            turnInfos.AddRange(gameInfo);
+        }
+        return turnInfos;
+    }
+
+
+    public static async Task TrainAiWithRandomGame(NeuralNetwork neural, NeuralConfig neuralConfig, CancellationToken cancellationToken, bool randomize = false)
+    {
+        var turnInfos = PrepareGameInfo(neuralConfig, randomize);
+        var input = turnInfos.Select(x => x.GetNeuralInput()).ToArray();
+        var output = turnInfos.Select(x => new double[] { x.Point }).ToArray();
+        await neural.Train(input, output, neuralConfig.BackgroundIterations, cancellationToken);
     }
 
 }
