@@ -1,48 +1,39 @@
 using System.Net;
 using System.Net.Mail;
 using AI_Chess.Controllers;
+using Coravel.Invocable;
+using Coravel.Queuing.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace AI_Chess
 {
-    public class TournamentWorker : BackgroundService
+    public class TournamentWorker : IInvocable, ICancellableTask
     {
         private readonly ILogger<TournamentWorker> _logger;
         private readonly NeuralConfig _neuralConfig;
         private readonly SmtpConfig _smtpConfig;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly Tournament _tournement;
 
-        public TournamentWorker(ILogger<TournamentWorker> logger, IOptions<NeuralConfig> neuralConfig, IServiceProvider serviceProvider, IOptions<SmtpConfig> smtpConfig)
+        public TournamentWorker(ILogger<TournamentWorker> logger, IOptions<NeuralConfig> neuralConfig, Tournament tournement, IOptions<SmtpConfig> smtpConfig)
         {
             _logger = logger;
             _neuralConfig = neuralConfig.Value;
             _smtpConfig = smtpConfig.Value;
-            _serviceProvider = serviceProvider;
-        }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                // if (firstTime)
-                // {
-                //     if(!Directory.Exists(_neuralConfig.GamesOutputDirectory)){
-                //         _logger.LogInformation("Downloading games");
-                //         await chessController.DownloadGames();
-                //     }
-                //     firstTime = false;
-                // }
-                //SendEmail(); TODO: have the ability to send to database in a email
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    var tournament = scope.ServiceProvider.GetRequiredService<Tournament>();
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
-                    await tournament.OpenTournament(300, stoppingToken);
-                    _logger.LogInformation("End of the Tournament");
-                }
-                await Task.Delay(TimeSpan.FromHours(2.5), stoppingToken);
-            }
+            _tournement = tournement;
         }
 
+        public CancellationToken Token { get; set; }
+
+        public async Task Invoke()
+        {
+            if (Token.IsCancellationRequested)
+            {
+                return;
+            }
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
+            await _tournement.OpenTournament(_neuralConfig.TournamentLength, Token);
+            _logger.LogInformation("End of the Tournament");
+        }
         private void SendEmail()
         {
             var smtpClient = new SmtpClient(_smtpConfig.Host)

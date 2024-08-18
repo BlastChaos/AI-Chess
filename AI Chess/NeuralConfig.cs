@@ -2,6 +2,7 @@
 
 public class NeuralConfig
 {
+
     public required string[] Users { get; set; }
     public required string GamesOutputDirectory { get; set; }
     public int NumberData { get; set; }
@@ -12,6 +13,8 @@ public class NeuralConfig
     public int BackgroundIterations { get; set; }
     public required string BrainFileName { get; set; }
     public required string TournementFileName { get; set; }
+    public int TournamentLength { get; set; }
+
 }
 
 public class Point

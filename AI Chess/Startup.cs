@@ -2,10 +2,10 @@ using AI_Chess;
 using AI_Chess.Activation;
 using AI_Chess.Context;
 using AI_Chess.Controllers;
+using Coravel;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-
 public class Startup
 {
     public Startup(IConfiguration configuration)
@@ -31,8 +31,9 @@ public class Startup
         
         services.AddDbContext<ChessDbContext>(options => options.UseSqlite(brainConnectionString));
         services.AddDbContext<TournementDbContext>(options => options.UseSqlite(tournementConnectionString));
-        services.AddHostedService<TournamentWorker>();
 
+        services.AddTransient<TournamentWorker>();
+        services.AddScheduler();
 
         var numberInput = TurnInfo.GetNumberOfInputNodes();
         List<Node> nodes = new() //Set here since I don't want to manage the case where I don't have a good activation in appsetting.json
