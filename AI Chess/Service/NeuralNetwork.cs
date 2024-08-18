@@ -70,7 +70,7 @@ namespace AI_Chess
 
             for (int i = 0; i < this.Nodes.Length; i++)
             {
-                var w = await GetContents(i, _chessDbContext.WContents, stoppingToken);
+                var w = await GetWContents(i, stoppingToken);
                 var b = await GetBContents(i, stoppingToken);
                 dotProduct = MatrixOperation.DotProduct(a, w);
                 var z = MatrixOperation.Add(dotProduct, b);
@@ -88,12 +88,12 @@ namespace AI_Chess
 
             for (int i = this.Nodes.Length - 1; i >= 0; i--)
             {
-                var a = await GetContents(i, _chessDbContext.AContents, stoppingToken);
-                var z = await GetContents(i, _chessDbContext.ZContents, stoppingToken);
+                var a = await GetAContents(i, stoppingToken);
+                var z = await GetZContents(i, stoppingToken);
 
                 if (i == this.Nodes.Length - 1)
                 {
-                    double[][] aAfter = await GetContents(i + 1, _chessDbContext.AContents, stoppingToken);
+                    double[][] aAfter = await GetAContents(i + 1, stoppingToken);
                     int aLength = aAfter.Length;
                     dA = new double[aLength][];
                     for (int l = 0; l < aLength; l++)
@@ -108,14 +108,14 @@ namespace AI_Chess
                 }
                 else
                 {
-                    var wAfter = await GetContents(i + 1, _chessDbContext.WContents, stoppingToken);
+                    var wAfter = await GetWContents(i + 1, stoppingToken);
                     dA = MatrixOperation.DotProduct(dz[i + 1], MatrixOperation.Transpose(wAfter!));
                     dz[i] = MatrixOperation.DotElementWise(dA, this.Nodes[i].Activation!.Derivative(z, y));
                 }
                 var dw = MatrixOperation.DotProduct(MatrixOperation.Transpose(a), dz[i]);
                 var db = MatrixOperation.SumColumn(dz[i]);
 
-                var w = await GetContents(i, _chessDbContext.WContents, stoppingToken);
+                var w = await GetWContents(i, stoppingToken);
                 var b = await GetBContents(i, stoppingToken);
                 var newW = MatrixOperation.Diff(w, MatrixOperation.DotConstant(dw, this.LearningRate));
                 var fakeB = new double[][] { b };
@@ -155,6 +155,18 @@ namespace AI_Chess
         public Task<double[][]> Predict(double[][] x, CancellationToken stoppingToken)
         {
             return Forward(x, stoppingToken);
+        }
+
+        public async Task Export(NeuralNetwork neuralExport, CancellationToken stoppingToken)
+        {
+
+            for (int i = 0; i < this.Nodes.Length; i++)
+            {
+                var w = await neuralExport.GetWContents(i, stoppingToken);
+                var b = await neuralExport.GetBContents(i, stoppingToken);
+                await UpdateContent(i, w, _chessDbContext.WContents, stoppingToken);
+                await UpdateBContent(i, b, stoppingToken);
+            }
         }
 
 
@@ -221,15 +233,32 @@ namespace AI_Chess
             }
         }
 
-        private async Task<double[][]> GetContents<T>(int postition, DbSet<T> dbSet, CancellationToken stoppingToken) where T : Content
+
+        public async Task<double[][]> GetWContents(int postition, CancellationToken stoppingToken)
         {
-            return await dbSet.AsNoTracking()
+            return await _chessDbContext.WContents.AsNoTracking()
             .Where(c => c.Position == postition && c.NeuralNetworkId == this.NeuralNetworkId)
             .Select(c => c.Value)
             .FirstAsync(stoppingToken);
         }
 
-        private async Task<double[]> GetBContents(int postition, CancellationToken stoppingToken)
+        public async Task<double[][]> GetAContents(int postition, CancellationToken stoppingToken)
+        {
+            return await _chessDbContext.AContents.AsNoTracking()
+            .Where(c => c.Position == postition && c.NeuralNetworkId == this.NeuralNetworkId)
+            .Select(c => c.Value)
+            .FirstAsync(stoppingToken);
+        }
+
+        public async Task<double[][]> GetZContents(int postition, CancellationToken stoppingToken)
+        {
+            return await _chessDbContext.ZContents.AsNoTracking()
+            .Where(c => c.Position == postition && c.NeuralNetworkId == this.NeuralNetworkId)
+            .Select(c => c.Value)
+            .FirstAsync(stoppingToken);
+        }
+
+        public async Task<double[]> GetBContents(int postition, CancellationToken stoppingToken)
         {
             return await _chessDbContext.BContents
             .AsNoTracking()
