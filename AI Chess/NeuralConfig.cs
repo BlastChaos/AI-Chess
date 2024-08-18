@@ -11,6 +11,7 @@ public class NeuralConfig
     public double LearningRate { get; set; }
     public int BackgroundIterations { get; set; }
     public string BrainFileName { get; set; }
+    public string TournementFileName { get; set; }
 }
 
 public class Point
