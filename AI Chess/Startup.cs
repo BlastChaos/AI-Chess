@@ -28,6 +28,7 @@ public class Startup
         var neuralConfig = Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>() ?? throw new Exception("Neural config cannot be null");
         string brainConnectionString = $"Data Source={neuralConfig.BrainFileName}";
         string tournementConnectionString = $"Data Source={neuralConfig.TournementFileName}";
+        
         services.AddDbContext<ChessDbContext>(options => options.UseSqlite(brainConnectionString));
         services.AddDbContext<TournementDbContext>(options => options.UseSqlite(tournementConnectionString));
         services.AddHostedService<TournamentWorker>();
@@ -120,6 +121,8 @@ public class Startup
         {
             var dbContext = serviceScope.ServiceProvider.GetRequiredService<ChessDbContext>();
             dbContext.Database.Migrate();
+            var tournementDbContext = serviceScope.ServiceProvider.GetRequiredService<TournementDbContext>();
+            tournementDbContext.Database.Migrate();
         }
 
         app.UseHttpsRedirection();

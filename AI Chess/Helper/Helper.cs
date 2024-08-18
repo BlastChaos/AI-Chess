@@ -36,16 +36,10 @@ public partial class Helper
     {
         List<TurnInfo> turnInfos = new();
 
-        var newBoard = new ChessBoard();
-
-        foreach (Move moveMatch in board.ExecutedMoves)
+        var indexLength = board.MoveIndex;
+        board.MoveIndex = -1;
+        while (board.MoveIndex != indexLength)
         {
-            if (playerColor != newBoard.Turn)
-            {
-                newBoard.Move(moveMatch);
-                continue;
-            }
-            var pieces = ChessBoardOp.TransformChessBoard(newBoard);
             // for (int i = 0; i < pieces.Length; i++)
             // {
             //     for (int j = 0; j < pieces[i].Length; j++)
@@ -54,31 +48,44 @@ public partial class Helper
             //     }
             //     Console.WriteLine();
             // }
-            var moves = newBoard.Moves();
+            if (playerColor != board.Turn)
+            {
+                board.Next();
+                continue;
+            }
+            var pieces = ChessBoardOp.TransformChessBoard(board);
+            var moves = board.Moves();
+
+            //Get executed Move
+            var nextMove = board.ExecutedMoves[board.MoveIndex + 1];
+
             for (int i = 0; i < Math.Min(moves.Length, 30); i++)
             {
                 var possibleMove = moves[i];
-                var isPlayerMove = moveMatch.ToString() == possibleMove.ToString();
-                var point = CalculatePointOfBoard(newBoard, possibleMove, isPlayerMove);
+                var isPlayerMove = nextMove.ToString() == possibleMove.ToString();
+                var point = CalculatePointOfBoard(board.ToFen(), possibleMove, isPlayerMove);
                 turnInfos.Add(new TurnInfo()
                 {
                     OriginalPositions = pieces,
-                    Move = moveMatch,
-                    PreviousMoves = newBoard.ExecutedMoves.ToArray(),
+                    Move = nextMove,
+                    PreviousMoves = board.ExecutedMoves.Take(board.MoveIndex + 1).ToArray(),
                     Point = point,
-                    Turn = newBoard.Turn,
+                    Turn = board.Turn,
                     OpponentElo = opponentElo,
                 });
 
             }
-            newBoard.Move(moveMatch);
+            board.Next();
+
         }
+
         return turnInfos;
 
     }
 
-    public static double CalculatePointOfBoard(ChessBoard board, Move move, bool isPlayerMove)
+    public static double CalculatePointOfBoard(string fen, Move move, bool isPlayerMove)
     {
+        var board = ChessBoard.LoadFromFen(fen);
         if (move.IsMate) return 1;
 
         var killPoint = 0.0;
@@ -111,7 +118,6 @@ public partial class Helper
                 else if (possibleMove.CapturedPiece.Type.Value == PieceType.Queen.Value) worstScenario = Math.Max(worstScenario, 0.9);
             }
         }
-        board.Cancel();
 
         return Math.Max(killPoint - worstScenario / 1.5, 0);
 

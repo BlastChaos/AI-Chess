@@ -1,11 +1,10 @@
-﻿using AI_Chess.Model;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 namespace AI_Chess.Context
 {
 
-    public class TournementDbContext : ChessDbContext
+    public class TournementDbContext : BaseChessDbContext
     {
 
-        public TournementDbContext(DbContextOptions<ChessDbContext> options) : base(options) { }
+        public TournementDbContext(DbContextOptions<TournementDbContext> options) : base(options) { }
     }
 }

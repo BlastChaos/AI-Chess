@@ -10,7 +10,7 @@ namespace AI_Chess
         private readonly double LearningRate;
         private readonly List<double> Loss;
         private readonly Node[] Nodes;
-        private readonly ChessDbContext _chessDbContext;
+        private readonly BaseChessDbContext _chessDbContext;
         private readonly ILogger<NeuralNetwork> _logger;
         private readonly string NeuralNetworkId;
 
@@ -19,7 +19,7 @@ namespace AI_Chess
             double learningRate,
             string neuralNetworkId,
             Node[] nodes,
-            ChessDbContext chessDbContext,
+            BaseChessDbContext chessDbContext,
             ILogger<NeuralNetwork> logger)
         {
 
@@ -160,6 +160,7 @@ namespace AI_Chess
         public async Task Export(NeuralNetwork neuralExport, CancellationToken stoppingToken)
         {
 
+            _logger.LogInformation("Neural {name1} will be transferred to {name2}", NeuralNetworkId, neuralExport.NeuralNetworkId);
             for (int i = 0; i < this.Nodes.Length; i++)
             {
                 var w = await neuralExport.GetWContents(i, stoppingToken);
