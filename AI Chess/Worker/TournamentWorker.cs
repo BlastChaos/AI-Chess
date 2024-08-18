@@ -13,6 +13,7 @@ namespace AI_Chess
         private readonly NeuralConfig _neuralConfig;
         private readonly SmtpConfig _smtpConfig;
         private readonly Tournament _tournement;
+        public CancellationToken Token { get; set; }
 
         public TournamentWorker(ILogger<TournamentWorker> logger, IOptions<NeuralConfig> neuralConfig, Tournament tournement, IOptions<SmtpConfig> smtpConfig)
         {
@@ -22,7 +23,6 @@ namespace AI_Chess
             _tournement = tournement;
         }
 
-        public CancellationToken Token { get; set; }
 
         public async Task Invoke()
         {
