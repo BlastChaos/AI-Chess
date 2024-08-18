@@ -130,13 +130,7 @@ namespace AI_Chess
             if (input[0].Length != this.NbInputNodes) throw new Exception("Invalid input");
             if (output[0].Length != this.Nodes.Last().NbHiddenNode) throw new Exception("Invalid output");
 
-            var wContentLength = await _chessDbContext.WContents.Where(c => c.NeuralNetworkId == this.NeuralNetworkId).CountAsync(stoppingToken);
-
-            if (wContentLength == 0)
-            {
-                _logger.LogInformation("Initialize database");
-                await InitializeDatabase(stoppingToken);
-            }
+            await InitializeDatabase(stoppingToken);
             _logger.LogInformation("Training start with {iterations} iterations", nbreIterations);
             for (int i = 1; i <= nbreIterations; i++)
             {
@@ -160,6 +154,8 @@ namespace AI_Chess
         public async Task Export(NeuralNetwork neuralExport, CancellationToken stoppingToken)
         {
 
+            await InitializeDatabase(stoppingToken);
+            await neuralExport.InitializeDatabase(stoppingToken);
             _logger.LogInformation("Neural {name1} will be transferred to {name2}", NeuralNetworkId, neuralExport.NeuralNetworkId);
             for (int i = 0; i < this.Nodes.Length; i++)
             {
@@ -173,6 +169,15 @@ namespace AI_Chess
 
         private async Task InitializeDatabase(CancellationToken stoppingToken)
         {
+
+            var wContentLength = await _chessDbContext.WContents.Where(c => c.NeuralNetworkId == this.NeuralNetworkId).CountAsync(stoppingToken);
+
+            if (wContentLength != 0)
+            {
+                return;
+            }
+
+            _logger.LogInformation("Initialize database");
             var wContentList = new HashSet<WContent>();
             var bContentList = new HashSet<BContent>();
 

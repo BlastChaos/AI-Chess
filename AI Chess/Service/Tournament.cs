@@ -31,8 +31,8 @@ namespace AI_Chess.Controllers
             var neuralNetwork1 = _neuralTournement.NeuralNetwork1;
             var neuralNetwork2 = _neuralTournement.NeuralNetwork2;
 
-            await neuralNetwork1.Reset(stoppingToken);
-            await neuralNetwork2.Reset(stoppingToken);
+            await neuralNetwork1.Export(_neuralNetwork, stoppingToken);
+            await neuralNetwork2.Export(_neuralNetwork, stoppingToken);
             var neuralNetwork1Victory = 0;
             var neuralNetwork2Victory = 0;
             for (int i = 1; i < fightNumber + 1; i++)
@@ -61,7 +61,7 @@ namespace AI_Chess.Controllers
                     }
                     move = await Helper.GetBestMove(chessGame, 1000, second, stoppingToken);
                     var secondMove = chessGame.Move(move);
-                   // _logger.LogInformation("Move Black: {move}", move);
+                    // _logger.LogInformation("Move Black: {move}", move);
                     if (!secondMove)
                     {
                         throw new Exception("Move not possible");
