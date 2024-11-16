@@ -16,19 +16,20 @@ public class Startup
     public IConfiguration Configuration { get; }
     public void ConfigureServices(IServiceCollection services)
     {
+
+        var connectionString = Configuration.GetConnectionString("DefaultConnection");
+
         services.AddControllers();
         services.AddScoped<ChessController>();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
         services.AddHttpClient(nameof(ChessController), c => c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"));
         services.Configure<NeuralConfig>(Configuration.GetSection(nameof(NeuralConfig)));
-        services.Configure<SmtpConfig>(Configuration.GetSection(nameof(SmtpConfig)));
         services.AddTransient<Tournament>();
 
         var neuralConfig = Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>() ?? throw new Exception("Neural config cannot be null");
-        string brainConnectionString = $"Data Source={neuralConfig.BrainFileName}";
-        
-        services.AddDbContext<ChessDbContext>(options => options.UseSqlite(brainConnectionString));
+
+        services.AddDbContext<ChessDbContext>(options => options.UseNpgsql(connectionString));
 
         services.AddTransient<TournamentWorker>();
         services.AddScheduler();

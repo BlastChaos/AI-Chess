@@ -1,0 +1,18 @@
+services:
+  ai-chess:
+    build: .
+    ports:
+      - "443:4343"
+    container_name: Ai-chess
+    restart: unless-stopped
+
+  database:
+    image: postgres:latest
+    container_name: Ai-chess-database
+    environment:
+      POSTGRES_USER: chessuser
+      POSTGRES_PASSWORD: chesspassword
+      POSTGRES_DB: chessdb
+    ports:
+      - "5432:5432"
+    restart: unless-stopped

@@ -11,8 +11,6 @@ public class NeuralConfig
     public required Point BadMatchPoint { get; set; }
     public double LearningRate { get; set; }
     public int BackgroundIterations { get; set; }
-    public required string BrainFileName { get; set; }
-    public required string TournementFileName { get; set; }
     public int TournamentLength { get; set; }
 
 }
