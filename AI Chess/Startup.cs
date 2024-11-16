@@ -27,10 +27,8 @@ public class Startup
 
         var neuralConfig = Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>() ?? throw new Exception("Neural config cannot be null");
         string brainConnectionString = $"Data Source={neuralConfig.BrainFileName}";
-        string tournementConnectionString = $"Data Source={neuralConfig.TournementFileName}";
         
         services.AddDbContext<ChessDbContext>(options => options.UseSqlite(brainConnectionString));
-        services.AddDbContext<TournementDbContext>(options => options.UseSqlite(tournementConnectionString));
 
         services.AddTransient<TournamentWorker>();
         services.AddScheduler();
@@ -88,7 +86,7 @@ public class Startup
             var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
             var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
             var learningRate = neuralConfig.Value.LearningRate;
-            var chessDbContext = provider.GetRequiredService<TournementDbContext>();
+            var chessDbContext = provider.GetRequiredService<ChessDbContext>();
             var neuralNetwork1 = new NeuralNetwork(numberInput, learningRate, "player 1", nodes.ToArray(), chessDbContext, logger);
             var neuralNetwork2 = new NeuralNetwork(numberInput, learningRate, "player 2", nodes.ToArray(), chessDbContext, logger);
             NeuralTournement tournament = new()
@@ -122,8 +120,6 @@ public class Startup
         {
             var dbContext = serviceScope.ServiceProvider.GetRequiredService<ChessDbContext>();
             dbContext.Database.Migrate();
-            var tournementDbContext = serviceScope.ServiceProvider.GetRequiredService<TournementDbContext>();
-            tournementDbContext.Database.Migrate();
         }
 
         app.UseHttpsRedirection();

@@ -10,7 +10,7 @@ namespace AI_Chess
         private readonly double LearningRate;
         private readonly List<double> Loss;
         private readonly Node[] Nodes;
-        private readonly BaseChessDbContext _chessDbContext;
+        private readonly ChessDbContext _chessDbContext;
         private readonly ILogger<NeuralNetwork> _logger;
         private readonly string NeuralNetworkId;
 
@@ -19,7 +19,7 @@ namespace AI_Chess
             double learningRate,
             string neuralNetworkId,
             Node[] nodes,
-            BaseChessDbContext chessDbContext,
+            ChessDbContext chessDbContext,
             ILogger<NeuralNetwork> logger)
         {
 
