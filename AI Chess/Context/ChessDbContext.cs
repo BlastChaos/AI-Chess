@@ -17,6 +17,9 @@ namespace AI_Chess.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BContent>()
+            .HasKey(e => e.Id);
+
+            modelBuilder.Entity<BContent>()
             .Property(e => e.Value)
                 .HasConversion(
                     v => ConvertArrayDoubleToString(v),
@@ -27,6 +30,10 @@ namespace AI_Chess.Context
                 c => c.ToArray()));
 
 
+
+
+            modelBuilder.Entity<WContent>()
+            .HasKey(e => e.Id);
 
             modelBuilder.Entity<WContent>()
                 .Property(e => e.Value)
@@ -39,6 +46,10 @@ namespace AI_Chess.Context
                 c => c.ToArray()));
 
 
+
+            modelBuilder.Entity<ZContent>()
+            .HasKey(e => e.Id);
+
             modelBuilder.Entity<ZContent>()
                 .Property(e => e.Value)
                 .HasConversion(
@@ -49,6 +60,9 @@ namespace AI_Chess.Context
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToArray()));
 
+
+            modelBuilder.Entity<AContent>()
+            .HasKey(e => e.Id);
 
             modelBuilder.Entity<AContent>()
                 .Property(e => e.Value)

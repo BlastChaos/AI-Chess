@@ -28,9 +28,18 @@ namespace AI_Chess
             {
                 return;
             }
-            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
-            await _tournement.OpenTournament(_neuralConfig.TournamentLength, Token);
-            _logger.LogInformation("End of the Tournament");
+            try
+            {
+                _logger.LogInformation("Worker running at: {time} (uct time)", DateTimeOffset.UtcNow);
+                await _tournement.OpenTournament(_neuralConfig.TournamentLength, Token);
+                _logger.LogInformation("End of the Tournament");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error in TournamentWorker");
+            }
+
+
         }
     }
 }

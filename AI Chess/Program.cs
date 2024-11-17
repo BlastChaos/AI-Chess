@@ -12,7 +12,8 @@ namespace ProgramAI
             {
                 scheduler.Schedule<TournamentWorker>()
                 .DailyAtHour(23)
-                // .EverySeconds(1) //For testing
+                .RunOnceAtStart()
+                
                 .PreventOverlapping(nameof(TournamentWorker));
             });
             host.Run();

@@ -2,7 +2,7 @@ services:
   ai-chess:
     build: .
     ports:
-      - "443:4343"
+      - "4343:80"
     container_name: Ai-chess
     restart: unless-stopped
 

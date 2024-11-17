@@ -177,7 +177,7 @@ namespace AI_Chess
                 return;
             }
 
-            _logger.LogInformation("Initialize database");
+            _logger.LogInformation("Initialize database for neural {neural}", this.NeuralNetworkId);
             var wContentList = new HashSet<WContent>();
             var bContentList = new HashSet<BContent>();
 
@@ -185,11 +185,11 @@ namespace AI_Chess
             for (int i = 0; i < Nodes.Length; i++)
             {
                 var w = MatrixOperation.GenerateRandomNormal(random, 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i - 1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                var wContent = new WContent() { Position = i, Value = w, NeuralNetworkId = this.NeuralNetworkId };
+                var wContent = new WContent() { Position = i, Value = w, NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString() };
                 wContentList.Add(wContent);
 
                 var b = new double[this.Nodes[i].NbHiddenNode].Select(j => j = 1).ToArray();
-                var bContent = new BContent() { Position = i, Value = b, NeuralNetworkId = this.NeuralNetworkId };
+                var bContent = new BContent() { Position = i, Value = b, NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString() };
                 bContentList.Add(bContent);
             }
             await _chessDbContext.WContents.AddRangeAsync(wContentList, stoppingToken);
@@ -226,7 +226,7 @@ namespace AI_Chess
 
             if (value == null)
             {
-                var newContent = new T() { Position = position, Value = content, NeuralNetworkId = this.NeuralNetworkId };
+                var newContent = new T() { Position = position, Value = content, NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString() };
                 await dbSet.AddAsync(newContent, stoppingToken);
                 await _chessDbContext.SaveChangesAsync(stoppingToken);
                 _chessDbContext.ChangeTracker.Clear();
