@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AI_Chess.Model
 {
     public abstract class Content
     {
         [Key]
-        public int Id { get; set; }
-        public int NeuralNetworkId { get; set; }
+        public string Id { get; set; }
+        public string NeuralNetworkId { get; set; }
         public int Position { get; set; }
 
         public double[][] Value { get; set; }

@@ -12,10 +12,13 @@ namespace AI_Chess.Context
         public DbSet<AContent> AContents { get; set; }
         public DbSet<BContent> BContents { get; set; }
 
-        public ChessDbContext(DbContextOptions<ChessDbContext> options) : base(options) { }
+        public ChessDbContext(DbContextOptions options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<BContent>()
+            .HasKey(e => e.Id);
+
             modelBuilder.Entity<BContent>()
             .Property(e => e.Value)
                 .HasConversion(
@@ -27,9 +30,10 @@ namespace AI_Chess.Context
                 c => c.ToArray()));
 
 
-            // modelBuilder.Entity<BContent>()
-            //     .HasIndex(e => e.Position)
-            //     .IsUnique();
+
+
+            modelBuilder.Entity<WContent>()
+            .HasKey(e => e.Id);
 
             modelBuilder.Entity<WContent>()
                 .Property(e => e.Value)
@@ -41,9 +45,10 @@ namespace AI_Chess.Context
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 c => c.ToArray()));
 
-            // modelBuilder.Entity<WContent>()
-            //     .HasIndex(e => e.Position)
-            //     .IsUnique();
+
+
+            modelBuilder.Entity<ZContent>()
+            .HasKey(e => e.Id);
 
             modelBuilder.Entity<ZContent>()
                 .Property(e => e.Value)
@@ -55,9 +60,9 @@ namespace AI_Chess.Context
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToArray()));
 
-            // modelBuilder.Entity<ZContent>()
-            //     .HasIndex(e => e.Position)
-            //     .IsUnique();
+
+            modelBuilder.Entity<AContent>()
+            .HasKey(e => e.Id);
 
             modelBuilder.Entity<AContent>()
                 .Property(e => e.Value)
@@ -69,24 +74,25 @@ namespace AI_Chess.Context
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToArray()));
 
-            // modelBuilder.Entity<AContent>()
-            //     .HasIndex(e => e.Position)
-            //     .IsUnique();
         }
 
-        private double[][] ConvertToArrayDouble(string v){
+        private double[][] ConvertToArrayDouble(string v)
+        {
             return JsonSerializer.Deserialize<double[][]>(v) ?? Array.Empty<double[]>();
         }
 
-        private string ConvertArrayDoubleToString(double[][] v){
+        private string ConvertArrayDoubleToString(double[][] v)
+        {
             return JsonSerializer.Serialize(v);
         }
 
-        private double[] ConvertToArrayDouble2(string v){
+        private double[] ConvertToArrayDouble2(string v)
+        {
             return JsonSerializer.Deserialize<double[]>(v) ?? Array.Empty<double>();
         }
 
-        private string ConvertArrayDoubleToString(double[] v){
+        private string ConvertArrayDoubleToString(double[] v)
+        {
             return JsonSerializer.Serialize(v);
         }
 

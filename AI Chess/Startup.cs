@@ -2,10 +2,10 @@ using AI_Chess;
 using AI_Chess.Activation;
 using AI_Chess.Context;
 using AI_Chess.Controllers;
+using Coravel;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-
 public class Startup
 {
     public Startup(IConfiguration configuration)
@@ -16,25 +16,26 @@ public class Startup
     public IConfiguration Configuration { get; }
     public void ConfigureServices(IServiceCollection services)
     {
+
+        var connectionString = Configuration.GetConnectionString("DefaultConnection");
+
         services.AddControllers();
         services.AddScoped<ChessController>();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
         services.AddHttpClient(nameof(ChessController), c => c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"));
         services.Configure<NeuralConfig>(Configuration.GetSection(nameof(NeuralConfig)));
-        services.Configure<SmtpConfig>(Configuration.GetSection(nameof(SmtpConfig)));
+        services.AddTransient<Tournament>();
 
+        var neuralConfig = Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>() ?? throw new Exception("Neural config cannot be null");
 
-        var neuralConfig = Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>();
+        services.AddDbContext<ChessDbContext>(options => options.UseNpgsql(connectionString));
 
-        string connectionString = $"Data Source={neuralConfig.BrainFileName}";
-        services.AddDbContext<ChessDbContext>(options => options.UseSqlite(connectionString));
-        services.AddHostedService<Worker>();
+        services.AddTransient<TournamentWorker>();
+        services.AddScheduler();
 
-
-        services.AddScoped(provider =>
-        {
-            List<Node> nodes = new()
+        var numberInput = TurnInfo.GetNumberOfInputNodes();
+        List<Node> nodes = new() //Set here since I don't want to manage the case where I don't have a good activation in appsetting.json
         {
             new Node()
             {
@@ -78,14 +79,34 @@ public class Startup
             }
         };
 
+
+
+        services.AddScoped(provider =>
+        {
+
             var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
             var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
             var learningRate = neuralConfig.Value.LearningRate;
             var chessDbContext = provider.GetRequiredService<ChessDbContext>();
-            var nbInputNodes = TurnInfo.GetNumberOfInputNodes();
-            var neuralNetwork1 = new NeuralNetwork(nbInputNodes, learningRate, 1, nodes.ToArray(), chessDbContext, logger);
-            var neuralNetwork2 = new NeuralNetwork(nbInputNodes, learningRate, 2, nodes.ToArray(), chessDbContext, logger);
-            return new NeuralNetwork[2] { neuralNetwork1, neuralNetwork2 };
+            var neuralNetwork1 = new NeuralNetwork(numberInput, learningRate, "player 1", nodes.ToArray(), chessDbContext, logger);
+            var neuralNetwork2 = new NeuralNetwork(numberInput, learningRate, "player 2", nodes.ToArray(), chessDbContext, logger);
+            NeuralTournement tournament = new()
+            {
+                NeuralNetwork1 = neuralNetwork1,
+                NeuralNetwork2 = neuralNetwork2,
+            };
+            return tournament;
+        });
+
+        services.AddScoped(provider =>
+        {
+
+            var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
+            var logger = provider.GetRequiredService<ILogger<NeuralNetwork>>();
+            var learningRate = neuralConfig.Value.LearningRate;
+            var chessDbContext = provider.GetRequiredService<ChessDbContext>();
+            var neuralNetwork = new NeuralNetwork(numberInput, 0, "neuralNetwork", nodes.ToArray(), chessDbContext, logger);
+            return neuralNetwork;
         });
 
     }
