@@ -31,20 +31,3 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ai-chess:${{ github.sha }}
         context: ./
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
-    steps:
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'ChessAi'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_b911f1fb6c4946e985b1378a6f4b3d39 }}
-        images: 'docker.io//${{ secrets.AzureAppService_ContainerUsername_fdfd93b6b5f04094b22dc14c4cbeb784 }}/blastchaos/ai-chess:${{ github.sha }}'
