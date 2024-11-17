@@ -23,7 +23,7 @@ public class Startup
         services.AddScoped<ChessController>();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
-        services.AddHttpClient(nameof(ChessController), c => c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"));
+        services.AddHttpClient(nameof(TournamentWorker), c => c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"));
         services.Configure<NeuralConfig>(Configuration.GetSection(nameof(NeuralConfig)));
         services.AddTransient<Tournament>();
 

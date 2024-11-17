@@ -137,7 +137,7 @@ public partial class Helper
         }
         int gameCount = 0;
 
-        while (gameCount < neuralConfig.NumberData)
+        while (gameCount < neuralConfig.NumberData && gameCount+1 < filePaths.Length)
         {
             gameCount++;
             var filePath = filePaths[gameCount];
