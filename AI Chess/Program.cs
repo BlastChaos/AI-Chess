@@ -11,7 +11,7 @@ namespace ProgramAI
             host.Services.UseScheduler(scheduler =>
             {
                 scheduler.Schedule<TournamentWorker>()
-                .DailyAtHour(3)
+                .DailyAtHour(8) //UTC TIME
                 .PreventOverlapping(nameof(TournamentWorker));
             });
             host.Run();
