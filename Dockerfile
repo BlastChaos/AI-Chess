@@ -19,5 +19,4 @@ RUN dotnet publish "AI Chess.csproj" -c Release -o /app/publish /p:UseAppHost=fa
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN mkdir -p /app/Games
 ENTRYPOINT ["dotnet", "AI Chess.dll"]
