@@ -1,15 +1,4 @@
 services:
-  ai-chess:
-    build: .
-    environment:
-      - NeuralConfig__NumberData=50
-    ports:
-      - "4343:80"
-    # volumes:
-    #   - ./AI Chess/Games:/app/Games
-    container_name: Ai-chess
-    restart: unless-stopped
-
   database:
     image: postgres:latest
     container_name: Ai-chess-database
@@ -19,4 +8,24 @@ services:
       POSTGRES_DB: chessdb
     ports:
       - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", -f, "http://localhost:5432"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  ai-chess:
+    build: .
+    environment:
+      - NeuralConfig__NumberData=50
+    depends_on:
+      - database
+    links:
+      - database
+    ports:
+      - "4343:80"
+    # volumes:
+    #   - ./AI Chess/Games:/app/Games
+    container_name: Ai-chess
     restart: unless-stopped
