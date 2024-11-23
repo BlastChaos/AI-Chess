@@ -29,7 +29,10 @@ public class Startup
 
         var neuralConfig = Configuration.GetSection(nameof(NeuralConfig)).Get<NeuralConfig>() ?? throw new Exception("Neural config cannot be null");
 
-        services.AddDbContext<ChessDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<ChessDbContext>(optionBuilder =>
+        {
+            optionBuilder.UseNpgsql(connectionString, option => option.EnableRetryOnFailure());
+        });
 
         services.AddTransient<TournamentWorker>();
         services.AddScheduler();
@@ -81,7 +84,7 @@ public class Startup
 
 
 
-        services.AddScoped(provider =>
+        services.AddTransient(provider =>
         {
 
             var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
@@ -98,7 +101,7 @@ public class Startup
             return tournament;
         });
 
-        services.AddScoped(provider =>
+        services.AddTransient(provider =>
         {
 
             var neuralConfig = provider.GetRequiredService<IOptions<NeuralConfig>>();
