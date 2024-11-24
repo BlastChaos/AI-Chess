@@ -67,13 +67,16 @@ namespace AI_Chess
             await UpdateContent(0, x, _chessDbContext.AContents, stoppingToken);
 
             double[][] a = x;
+            double[][] w;
+            double[] b;
+            double[][] z;
 
             for (int i = 0; i < this.Nodes.Length; i++)
             {
-                var w = await GetWContents(i, stoppingToken);
-                var b = await GetBContents(i, stoppingToken);
+                w = await GetWContents(i, stoppingToken);
+                b = await GetBContents(i, stoppingToken);
                 dotProduct = MatrixOperation.DotProduct(a, w);
-                var z = MatrixOperation.Add(dotProduct, b);
+                z = MatrixOperation.Add(dotProduct, b);
                 a = this.Nodes[i].Activation!.Activation(z);
                 await UpdateContent(i, z, _chessDbContext.ZContents, stoppingToken);
                 await UpdateContent(i + 1, a, _chessDbContext.AContents, stoppingToken);
