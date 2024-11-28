@@ -30,17 +30,15 @@ namespace AI_Chess.Context
                 c => c.ToArray()));
 
 
-
-
             modelBuilder.Entity<WContent>()
             .HasKey(e => e.Id);
 
             modelBuilder.Entity<WContent>()
-                .Property(e => e.Value)
+                .Property(e => e.Values)
                 .HasConversion(
                     v => ConvertArrayDoubleToString(v),
-                    v => ConvertToArrayDouble(v))
-            .Metadata.SetValueComparer(new ValueComparer<double[][]>(
+                    v => ConvertToArrayDouble2(v))
+            .Metadata.SetValueComparer(new ValueComparer<double[]>(
                 (c1, c2) => c1.SequenceEqual(c2),
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 c => c.ToArray()));
@@ -51,11 +49,11 @@ namespace AI_Chess.Context
             .HasKey(e => e.Id);
 
             modelBuilder.Entity<ZContent>()
-                .Property(e => e.Value)
+                .Property(e => e.Values)
                 .HasConversion(
                     v => ConvertArrayDoubleToString(v),
-                    v => ConvertToArrayDouble(v))
-            .Metadata.SetValueComparer(new ValueComparer<double[][]>(
+                    v => ConvertToArrayDouble2(v))
+            .Metadata.SetValueComparer(new ValueComparer<double[]>(
             (c1, c2) => c1.SequenceEqual(c2),
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToArray()));
@@ -65,25 +63,15 @@ namespace AI_Chess.Context
             .HasKey(e => e.Id);
 
             modelBuilder.Entity<AContent>()
-                .Property(e => e.Value)
+                .Property(e => e.Values)
                 .HasConversion(
                     v => ConvertArrayDoubleToString(v),
-                    v => ConvertToArrayDouble(v))
-            .Metadata.SetValueComparer(new ValueComparer<double[][]>(
+                    v => ConvertToArrayDouble2(v))
+            .Metadata.SetValueComparer(new ValueComparer<double[]>(
             (c1, c2) => c1.SequenceEqual(c2),
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToArray()));
 
-        }
-
-        private double[][] ConvertToArrayDouble(string v)
-        {
-            return JsonSerializer.Deserialize<double[][]>(v) ?? Array.Empty<double[]>();
-        }
-
-        private string ConvertArrayDoubleToString(double[][] v)
-        {
-            return JsonSerializer.Serialize(v);
         }
 
         private double[] ConvertToArrayDouble2(string v)

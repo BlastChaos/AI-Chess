@@ -188,8 +188,11 @@ namespace AI_Chess
             for (int i = 0; i < Nodes.Length; i++)
             {
                 var w = MatrixOperation.GenerateRandomNormal(random, 0, 1, i == 0 ? this.NbInputNodes : this.Nodes[i - 1].NbHiddenNode, this.Nodes[i].NbHiddenNode);
-                var wContent = new WContent() { Position = i, Value = w, NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString() };
-                wContentList.Add(wContent);
+
+                for (int j = 0; j < w.Length; j++)
+                {
+                    wContentList.Add(new WContent() { Position = i, Values = w[j], NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString(), Row = j });
+                }
 
                 var b = new double[this.Nodes[i].NbHiddenNode].Select(j => j = 1).ToArray();
                 var bContent = new BContent() { Position = i, Value = b, NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString() };
@@ -222,23 +225,34 @@ namespace AI_Chess
 
         private async Task UpdateContent<T>(int position, double[][] content, DbSet<T> dbSet, CancellationToken stoppingToken) where T : Content, new()
         {
+
+            _logger.LogInformation("Update {neuralNetworkId} at Position {position}", this.NeuralNetworkId , position);
             var value = await dbSet.AsNoTracking()
             .Where(c => c.Position == position && c.NeuralNetworkId == this.NeuralNetworkId)
-            .Select(c => c.Value)
-            .FirstOrDefaultAsync(stoppingToken);
+            .OrderBy(c => c.Row)
+            .Select(c => c.Values)
+            .ToArrayAsync(stoppingToken);
 
-            if (value == null)
+            if (value == null || value.Length == 0)
             {
-                var newContent = new T() { Position = position, Value = content, NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString() };
-                await dbSet.AddAsync(newContent, stoppingToken);
+
+                var newContentList = new List<T>();
+                for (int i = 0; i < content.Length; i++)
+                {
+                    newContentList.Add(new T() { Position = position, Values = content[i], NeuralNetworkId = this.NeuralNetworkId, Id = Guid.NewGuid().ToString(), Row = i });
+                }
+                await dbSet.AddRangeAsync(newContentList, stoppingToken);
                 await _chessDbContext.SaveChangesAsync(stoppingToken);
                 _chessDbContext.ChangeTracker.Clear();
             }
             else
             {
-                await dbSet
-                    .Where(c => c.Position == position && c.NeuralNetworkId == this.NeuralNetworkId)
-                    .ExecuteUpdateAsync(setters => setters.SetProperty(info => info.Value, content), stoppingToken);
+               for (int i = 0; i < content.Length; i++)
+                {
+                    await dbSet
+                    .Where(c => c.Position == position && c.NeuralNetworkId == this.NeuralNetworkId && c.Row == i)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(info => info.Values, content[i]), stoppingToken);
+                }
             }
         }
 
@@ -247,24 +261,27 @@ namespace AI_Chess
         {
             return await _chessDbContext.WContents.AsNoTracking()
             .Where(c => c.Position == postition && c.NeuralNetworkId == this.NeuralNetworkId)
-            .Select(c => c.Value)
-            .FirstAsync(stoppingToken);
+            .OrderBy(c => c.Row)
+            .Select(c => c.Values)
+            .ToArrayAsync(stoppingToken);
         }
 
         public async Task<double[][]> GetAContents(int postition, CancellationToken stoppingToken)
         {
             return await _chessDbContext.AContents.AsNoTracking()
             .Where(c => c.Position == postition && c.NeuralNetworkId == this.NeuralNetworkId)
-            .Select(c => c.Value)
-            .FirstAsync(stoppingToken);
+            .OrderBy(c => c.Row)
+            .Select(c => c.Values)
+            .ToArrayAsync(stoppingToken);
         }
 
         public async Task<double[][]> GetZContents(int postition, CancellationToken stoppingToken)
         {
             return await _chessDbContext.ZContents.AsNoTracking()
             .Where(c => c.Position == postition && c.NeuralNetworkId == this.NeuralNetworkId)
-            .Select(c => c.Value)
-            .FirstAsync(stoppingToken);
+            .OrderBy(c => c.Row)
+            .Select(c => c.Values)
+            .ToArrayAsync(stoppingToken);
         }
 
         public async Task<double[]> GetBContents(int postition, CancellationToken stoppingToken)
