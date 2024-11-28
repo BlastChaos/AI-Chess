@@ -48,37 +48,37 @@ public class Startup
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 40
-            },
-            new Node()
-            {
-                Activation = new LeakyRelu(),
-                NbHiddenNode = 40
+                NbHiddenNode = 30
             },
             new Node()
             {
                 Activation = new Sigmoid(),
-                NbHiddenNode = 40
+                NbHiddenNode = 30
             },
             new Node()
             {
                 Activation = new Sigmoid(),
-                NbHiddenNode = 40
+                NbHiddenNode = 30
+            },
+            new Node()
+            {
+                Activation = new Sigmoid(),
+                NbHiddenNode = 30
             },
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 40
+                NbHiddenNode = 30
             },
             new Node()
             {
                 Activation = new LeakyRelu(),
-                NbHiddenNode = 40
+                NbHiddenNode = 30
             },
             new Node()
             {
-                Activation = new LeakyRelu(),
-                NbHiddenNode = 40
+                Activation = new Sigmoid(),
+                NbHiddenNode = 30
             },
             new Node()
             {

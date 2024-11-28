@@ -36,7 +36,7 @@ while (true)
         var playerTopElement = driver.FindElement(By.Id("player-top"))
                                 ?? throw new Exception("Impossible to find the player top element");
 
-        var opponentEloText = playerTopElement.FindElement(By.ClassName("user-tagline-rating")).Text;
+        var opponentEloText = playerTopElement.FindElement(By.ClassName("cc-user-rating-white")).Text;
 
         var match = MyRegex1().Match(opponentEloText);
         if(!match.Success) throw new Exception("Impossible to find the opponent elo");
@@ -45,7 +45,7 @@ while (true)
 
         Console.WriteLine("Chess board found");
         
-        IWebElement[] playerNames =  driver.FindElements(By.ClassName("user-username-component")).ToArray();
+        IWebElement[] playerNames =  driver.FindElements(By.ClassName("cc-user-username-white")).ToArray();
         Console.WriteLine( playerNames[0].Text + " vs " + playerNames[1].Text);
 
         // Vérifier notre couleur
